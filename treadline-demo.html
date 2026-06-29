@@ -55,6 +55,8 @@
   .top .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
   .top .grow{flex:1}
   .top .date{color:var(--muted);font-size:12.5px;font-weight:500}
+  .top .topmark{display:none;width:32px;height:32px;border-radius:9px;background:var(--ink);place-items:center;flex:none}
+  .top .toptitle{min-width:0}
   .toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;box-shadow:var(--sh-sm)}
   .toggle button{border:0;background:#fff;padding:8px 13px;font-weight:700;cursor:pointer;color:var(--muted);font-size:13px;font-family:inherit}
   .toggle button.on{background:var(--ink);color:#fff}
@@ -184,15 +186,25 @@
   @media(max-width:980px){.cols{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:720px){
     .app{grid-template-columns:1fr}
-    .side{position:static;height:auto;flex-direction:row;align-items:center;padding:12px 16px;gap:10px}
-    .side .nav,.side .grow,.side .who{display:none}
-    .side .demo{margin-inline-start:auto}
-    .content{padding:18px 16px 50px}.top{padding:14px 16px}
+    .side{display:none}
+    .top{position:sticky;top:0;z-index:30;background:var(--card);padding:11px 15px;gap:11px;flex-wrap:nowrap}
+    .top .topmark{display:grid}
+    .top h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top .sub{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top .date{display:none}
+    .content{padding:16px 14px 52px}
   }
   @media(max-width:640px){
-    .top{flex-wrap:wrap;gap:9px}
-    .expo{gap:18px}
-    .expo .brk{border-inline-start:0;padding-inline-start:0;border-top:1px solid var(--line-2);padding-top:14px;width:100%;min-width:0}
+    .kpis{gap:12px}
+    .kpi{padding:14px}
+    .kpi .spark{display:none}
+    .kpi .row1{padding-inline-end:0}
+    .kpi .val{font-size:17px;white-space:nowrap}
+    .expo{flex-direction:column;align-items:stretch;gap:16px}
+    .expo .donut-wrap{align-self:center}
+    .expo .meta{min-width:0;width:100%}
+    .expo .brk{flex:none;border-inline-start:0;padding-inline-start:0;border-top:1px solid var(--line-2);padding-top:16px;width:100%;min-width:0}
+    .brk .blrow,.brk .blrow .amt{font-size:13px}
     table thead{display:none}
     table tbody tr{display:block;border:1px solid var(--line);border-radius:12px;margin:10px 14px;padding:2px 0;box-shadow:var(--sh-sm)}
     table tbody tr td{display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;padding:9px 14px;white-space:normal;text-align:start}
@@ -275,7 +287,8 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
   <!-- main -->
   <div class="main">
     <div class="top">
-      <div>
+      <span class="topmark" id="topMark"></span>
+      <div class="toptitle">
         <h1 id="pageTitle"></h1>
         <div class="sub" id="pageSub"></div>
       </div>
@@ -496,7 +509,9 @@ function render(){
   document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=t(n.dataset.i18n));
 
   // brand + chrome
-  const bm=document.getElementById("brandMark"); clear(bm); bm.appendChild(sv("svg",{viewBox:"0 0 24 24",fill:"none",width:"18",height:"18"},[sv("circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}),sv("circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:1,fill:"#fff"}),sv("path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"})]));
+  function tyreSvg(){return sv("svg",{viewBox:"0 0 24 24",fill:"none",width:"18",height:"18"},[sv("circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}),sv("circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:1,fill:"#fff"}),sv("path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"})]);}
+  const bm=document.getElementById("brandMark"); clear(bm); bm.appendChild(tyreSvg());
+  const tm=document.getElementById("topMark"); if(tm){clear(tm); tm.appendChild(tyreSvg());}
   document.getElementById("pageTitle").textContent=t("title");
   document.getElementById("pageSub").textContent=t("sub");
   document.getElementById("dateLbl").textContent=t("date");

@@ -57,7 +57,8 @@
   .pad{padding:16px 16px 22px}
   .search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:12px}
   .search svg{width:17px;height:17px;color:var(--faint)} .search input{border:0;outline:none;font-family:inherit;font-size:14px;width:100%;background:transparent}
-  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
+  .chips::-webkit-scrollbar{display:none}
   .chips button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit}
   .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 
@@ -148,14 +149,13 @@
   .np-foot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint)}
   @media(max-width:560px){
     body{background:#fff}
-    .stage{padding:0}
-    .toolbar{flex-wrap:nowrap;gap:8px;margin:0;padding:9px 12px;height:56px;position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:30}
+    .stage{padding:0;height:100vh;height:100dvh;display:flex;flex-direction:column}
+    .toolbar{flex:none;flex-wrap:wrap;gap:8px 10px;margin:0;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line);z-index:30}
     .toolbar .badge{display:none}
-    .toolbar .brand span:last-child{display:none}
-    .ctrl{padding:5px 6px 5px 10px;min-width:0}
-    .ctrl label{display:none}
-    .ctrl select{max-width:130px;text-overflow:ellipsis}
-    .phone{width:100%;max-width:100%;height:calc(100vh - 56px);max-height:none;border:0;border-radius:0;box-shadow:none}
+    .ctrl{flex-basis:100%;order:9;min-width:0;padding:6px 9px 6px 12px}
+    .ctrl label{display:inline-flex}
+    .ctrl select{max-width:none;width:100%}
+    .phone{flex:1;min-height:0;width:100%;max-width:100%;height:auto;max-height:none;border:0;border-radius:0;box-shadow:none}
     .note{display:none}
   }
 </style>
@@ -343,14 +343,13 @@ function render(){
 
 function renderShop(sc){
   sc.appendChild(el("div",{class:"search"},[icon("search"),el("input",{type:"text",name:"search",id:"searchInput","aria-label":t("search"),placeholder:t("search"),value:query,oninput:(e)=>{query=e.target.value;rerenderList();}})]));
-  const types=[["all","all"],["car","car"],["suv","suv"],["perf","perf"],["truck","truck"]];
-  const chips=el("div",{class:"chips"});
-  types.forEach(([v])=>chips.appendChild(el("button",{class:filterType===v?"on":"",onclick:()=>{filterType=v;rerenderList();},text:t(v)})));
-  sc.appendChild(chips);
+  sc.appendChild(el("div",{class:"chips",id:"chips"}));
+  renderChips();
   const list=el("div",{id:"plist"});sc.appendChild(list);
   fillList(list);
 }
 function rerenderList(){const l=document.getElementById("plist");if(l){clear(l);fillList(l);}}
+function renderChips(){var c=document.getElementById("chips");if(!c)return;clear(c);["all","car","suv","perf","truck"].forEach(function(v){c.appendChild(el("button",{class:filterType===v?"on":"",onclick:function(){filterType=v;renderChips();rerenderList();},text:t(v)}));});}
 function fillList(list){
   const q=query.trim().toLowerCase();
   const rows=products.filter(p=>(filterType==="all"||p.type===filterType)&&(!q||(p.size+" "+p.brand+" "+p.pat).toLowerCase().includes(q)));
