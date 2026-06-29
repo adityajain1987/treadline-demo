@@ -368,8 +368,8 @@ const cheques=[
 ];
 
 const TXT={
- en:{demo:"Demo · sample data", date:"Sunday, 28 Jun 2026", title:"Cheque & Credit", sub:"Hamdan Trading · tyre dealers",
-  whoT:"Hamdan Trading", whoS:"Sole Dunlop distributor · Oman",
+ en:{demo:"Demo · sample data", date:"Sunday, 28 Jun 2026", title:"Cheque & Credit", sub:"Gulf Tyre Co. · tyre dealers",
+  whoT:"Gulf Tyre Co.", whoS:"Tyre & auto-parts distributor · Oman",
   nDash:"Dashboard", nDealers:"Dealers", nCheques:"Cheques", nAlerts:"Alerts",
   dealers:"Dealers", dealer:"Dealer", branch:"Branch", balance:"Balance", usage:"Credit used",
   status:"Status", alerts:"Alerts", register:"Cheque register", chequeNo:"Cheque #", bank:"Bank",
@@ -390,11 +390,11 @@ const TXT={
   tCleared:"Cheque marked as cleared", tBounced:"Cheque bounced — dealer credit blocked", tAdded:"Cheque added to register", tSent:"Reminder sent (demo)",
   override:"Override", overrideT:"Override cheque status", overrideNote:"Manual override — use when the bank record differs from the system (e.g. a cheque cleared but still shows bounced).", overrode:"Status set to",
   overrideHold:"Override credit hold", holdOverridden:"Credit hold overridden", holdRestored:"Credit hold restored", holdOverriddenT:"Credit hold overridden", holdOverriddenM:"Manually approved by you — this dealer is treated as in good standing.", undo:"Undo override",
-  remMsg:"🔔 Treadline reminder\n\nDear {dealer},\nYour cheque #{no} ({bank}) for {amt} is due on {date}.\nPlease ensure funds are available to clear it.\n\n— Hamdan Trading",
-  footA:"Demo with sample data only — not Hamdan's real figures. The live version connects to Odoo.",
+  remMsg:"🔔 Treadline reminder\n\nDear {dealer},\nYour cheque #{no} ({bank}) for {amt} is due on {date}.\nPlease ensure funds are available to clear it.\n\n— Gulf Tyre Co.",
+  footA:"Demo with sample data only. The live version connects to Odoo.",
   footB:"Treadline · built for Oman tyre & auto-parts distributors."},
- ar:{demo:"عرض تجريبي · بيانات", date:"الأحد، ٢٨ يونيو ٢٠٢٦", title:"الشيكات والائتمان", sub:"حمدان للتجارة · وكلاء الإطارات",
-  whoT:"حمدان للتجارة", whoS:"الموزع الحصري لدنلوب · عُمان",
+ ar:{demo:"عرض تجريبي · بيانات", date:"الأحد، ٢٨ يونيو ٢٠٢٦", title:"الشيكات والائتمان", sub:"شركة الخليج للإطارات · وكلاء الإطارات",
+  whoT:"شركة الخليج للإطارات", whoS:"موزّع إطارات وقطع غيار · عُمان",
   nDash:"الرئيسية", nDealers:"الوكلاء", nCheques:"الشيكات", nAlerts:"التنبيهات",
   dealers:"الوكلاء", dealer:"الوكيل", branch:"الفرع", balance:"الرصيد", usage:"الائتمان المستخدم",
   status:"الحالة", alerts:"التنبيهات", register:"سجل الشيكات", chequeNo:"رقم الشيك", bank:"البنك",
@@ -415,8 +415,8 @@ const TXT={
   tCleared:"تم تعليم الشيك كمصروف", tBounced:"شيك مرتجع — تم حظر ائتمان الوكيل", tAdded:"تمت إضافة الشيك", tSent:"تم إرسال التذكير (تجريبي)",
   override:"تجاوز", overrideT:"تجاوز حالة الشيك", overrideNote:"تجاوز يدوي — استخدمه عندما يختلف سجل البنك عن النظام (مثلاً شيك تم صرفه لكنه لا يزال يظهر مرتجعاً).", overrode:"تم ضبط الحالة إلى",
   overrideHold:"تجاوز إيقاف الائتمان", holdOverridden:"تم تجاوز إيقاف الائتمان", holdRestored:"تمت استعادة الإيقاف", holdOverriddenT:"تم تجاوز إيقاف الائتمان", holdOverriddenM:"تمت الموافقة يدوياً من قِبلك — يُعامَل هذا الوكيل كوضع جيد.", undo:"تراجع عن التجاوز",
-  remMsg:"🔔 تذكير Treadline\n\nعزيزي {dealer},\nشيكك رقم {no} ({bank}) بقيمة {amt} يستحق بتاريخ {date}.\nيرجى توفير الرصيد لصرفه.\n\n— حمدان للتجارة",
-  footA:"عرض تجريبي ببيانات افتراضية فقط — ليست أرقام حمدان الحقيقية. النسخة الحية تتصل بنظام Odoo.",
+  remMsg:"🔔 تذكير Treadline\n\nعزيزي {dealer},\nشيكك رقم {no} ({bank}) بقيمة {amt} يستحق بتاريخ {date}.\nيرجى توفير الرصيد لصرفه.\n\n— شركة الخليج للإطارات",
+  footA:"عرض تجريبي ببيانات افتراضية فقط. النسخة الحية تتصل بنظام Odoo.",
   footB:"Treadline · مصمم لموزعي الإطارات وقطع الغيار في عُمان."}
 };
 let lang="en", filter="all", curDealer=null;
