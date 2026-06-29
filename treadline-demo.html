@@ -103,16 +103,24 @@
   .usage{font-size:12px;font-weight:700;color:var(--ink-2)}
 
   /* ---- exposure donut ---- */
-  .expo{padding:18px;display:flex;align-items:center;gap:18px}
+  .expo{padding:18px 20px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
   .donut-wrap{position:relative;flex:none}
   .donut-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
   .donut-c .p{font-size:21px;font-weight:800;letter-spacing:-.02em}
   .donut-c .l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-  .expo .meta{flex:1;display:flex;flex-direction:row;gap:24px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-  .expo .mrow{display:flex;flex-direction:column;align-items:flex-start;gap:5px;font-size:13px}
+  .expo .meta{flex:none;min-width:180px;display:flex;flex-direction:column;gap:11px}
+  .expo .mrow{display:flex;justify-content:space-between;align-items:center;gap:18px;font-size:13px}
   .expo .mrow .k{color:var(--muted);display:flex;align-items:center;gap:7px}
   .expo .mrow .k i{width:9px;height:9px;border-radius:3px;display:inline-block}
-  .expo .mrow b{font-weight:800;font-size:18px;letter-spacing:-.02em}
+  .expo .mrow b{font-weight:800;font-size:15px}
+  .expo .brk{flex:1;min-width:260px;border-inline-start:1px solid var(--line-2);padding-inline-start:26px}
+  .brk .bhead{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+  .brk .sbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line-2)}
+  .brk .sbar>span{display:block;height:100%}
+  .brk .blegend{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+  .brk .blrow{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2)}
+  .brk .blrow i{width:9px;height:9px;border-radius:3px;flex:none}
+  .brk .blrow .amt{margin-inline-start:auto;font-weight:800;font-variant-numeric:tabular-nums}
 
   /* ---- alerts ---- */
   #alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;padding:16px}
@@ -159,6 +167,8 @@
   }
   @media(max-width:640px){
     .top{flex-wrap:wrap;gap:9px}
+    .expo{gap:18px}
+    .expo .brk{border-inline-start:0;padding-inline-start:0;border-top:1px solid var(--line-2);padding-top:14px;width:100%;min-width:0}
     table thead{display:none}
     table tbody tr{display:block;border:1px solid var(--line);border-radius:12px;margin:10px 14px;padding:2px 0;box-shadow:var(--sh-sm)}
     table tbody tr td{display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;padding:9px 14px;white-space:normal;text-align:start}
@@ -262,11 +272,6 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
         <div class="expo" id="expo"></div>
       </div>
 
-      <div class="card" id="alertsCard" style="margin-bottom:16px">
-        <div class="ch"><h2 data-i18n="alerts"></h2><span class="count" id="alertCount"></span></div>
-        <div id="alerts"></div>
-      </div>
-
       <div class="card" id="dealersCard">
         <div class="ch"><h2 data-i18n="dealers"></h2><span class="count" id="dealerCount"></span></div>
         <div style="overflow-x:auto">
@@ -288,6 +293,10 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
         </div>
       </div>
 
+      <div class="card" id="alertsCard" style="margin-top:16px">
+        <div class="ch"><h2 data-i18n="alerts"></h2><span class="count" id="alertCount"></span></div>
+        <div id="alerts"></div>
+      </div>
       <p class="foot" id="foot"></p>
     </div>
   </div>
@@ -392,7 +401,7 @@ const TXT={
   nDash:"Dashboard", nDealers:"Dealers", nCheques:"Cheques", nAlerts:"Alerts",
   dealers:"Dealers", dealer:"Dealer", branch:"Branch", balance:"Balance", usage:"Credit used",
   status:"Status", alerts:"Alerts", register:"Cheque register", chequeNo:"Cheque #", bank:"Bank",
-  amount:"Amount", due:"Due date", exposure:"Credit exposure", used:"Used", available:"Available", ofLimit:"of limit",
+  amount:"Amount", due:"Due date", exposure:"Credit exposure", used:"Used", available:"Available", ofLimit:"of limit", byStatus:"Exposure by status", bHealthy:"Healthy", bWatch:"Near limit", bRisk:"At risk",
   kReceiv:"Total receivables", kReceivSub:"across {n} dealers",
   kOver:"At-risk accounts", kOverSub:"{n} over limit / overdue",
   kDue:"Cheques due · 7 days", kBounced:"Bounced this month", kBouncedSub:"needs follow-up",
@@ -417,7 +426,7 @@ const TXT={
   nDash:"الرئيسية", nDealers:"الوكلاء", nCheques:"الشيكات", nAlerts:"التنبيهات",
   dealers:"الوكلاء", dealer:"الوكيل", branch:"الفرع", balance:"الرصيد", usage:"الائتمان المستخدم",
   status:"الحالة", alerts:"التنبيهات", register:"سجل الشيكات", chequeNo:"رقم الشيك", bank:"البنك",
-  amount:"المبلغ", due:"تاريخ الاستحقاق", exposure:"الانكشاف الائتماني", used:"المستخدم", available:"المتاح", ofLimit:"من الحد",
+  amount:"المبلغ", due:"تاريخ الاستحقاق", exposure:"الانكشاف الائتماني", used:"المستخدم", available:"المتاح", ofLimit:"من الحد", byStatus:"الانكشاف حسب الحالة", bHealthy:"جيد", bWatch:"قريب من الحد", bRisk:"معرّض للخطر",
   kReceiv:"إجمالي الذمم المدينة", kReceivSub:"عبر {n} وكيلاً",
   kOver:"حسابات معرّضة للخطر", kOverSub:"{n} تجاوز/متأخر",
   kDue:"شيكات مستحقة · ٧ أيام", kBounced:"شيكات مرتجعة هذا الشهر", kBouncedSub:"تحتاج متابعة",
@@ -529,7 +538,18 @@ function render(){
     el("div",{class:"mrow"},[el("span",{class:"k"},[el("i",{style:"background:#eaebf0"}),document.createTextNode(t("available"))]),el("b",{text:fmt(Math.max(totLim-totalRec,0))})]),
     el("div",{class:"mrow"},[el("span",{class:"k",text:t("creditLimit")}),el("b",{text:fmt(totLim)})])
   ]);
-  expo.appendChild(donut); expo.appendChild(meta);
+  const stOf=(x)=>dealerStatus(x);
+  const healthy=dealers.filter(x=>["ok","override"].includes(stOf(x))).reduce((s,x)=>s+x.bal,0);
+  const watch=dealers.filter(x=>stOf(x)==="near").reduce((s,x)=>s+x.bal,0);
+  const risk=dealers.filter(x=>["over","overdue"].includes(stOf(x))).reduce((s,x)=>s+x.bal,0);
+  const tot=totalRec||1;
+  const blrow=(c,lab,v)=>el("div",{class:"blrow"},[el("i",{style:"background:"+c}),document.createTextNode(lab),el("span",{class:"amt",text:fmt(v)})]);
+  const brk=el("div",{class:"brk"},[
+    el("div",{class:"bhead",text:t("byStatus")}),
+    el("div",{class:"sbar"},[el("span",{style:"width:"+(healthy/tot*100)+"%;background:#15a34a"}),el("span",{style:"width:"+(watch/tot*100)+"%;background:#d9a441"}),el("span",{style:"width:"+(risk/tot*100)+"%;background:#e0413f"})]),
+    el("div",{class:"blegend"},[blrow("#15a34a",t("bHealthy"),healthy),blrow("#d9a441",t("bWatch"),watch),blrow("#e0413f",t("bRisk"),risk)])
+  ]);
+  expo.appendChild(donut); expo.appendChild(meta); expo.appendChild(brk);
 
   // alerts
   const al=[];
