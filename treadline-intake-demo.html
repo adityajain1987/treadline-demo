@@ -139,6 +139,25 @@
 </style>
 </head>
 <body>
+<script>
+(function(){try{if(localStorage.getItem("tl_ok")==="1")return;}catch(e){}
+var H="923f691f3e24dfee676c1313c5346ff91bba58e737f2fe0d4b9c5a41af5e43c0",d=document;
+function mk(t,s,x){var n=d.createElement(t);if(s)n.setAttribute("style",s);if(x!=null)n.textContent=x;return n;}
+var ov=mk("div","position:fixed;inset:0;z-index:99999;background:#0d0f14;display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans Arabic',sans-serif;padding:20px");
+var c=mk("div","background:#fff;border-radius:18px;padding:30px 26px;width:340px;max-width:92vw;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);text-align:center");
+var lg=mk("div","width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#4f46e5,#4338ca);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px","◎");
+var h=mk("div","font-weight:800;font-size:20px;letter-spacing:-.02em;color:#14171d","Treadline");
+var sub=mk("div","color:#666d79;font-size:13.5px;margin:6px 0 20px","Enter the password to view the demo");
+var inp=mk("input","width:100%;border:1px solid #ecedf1;border-radius:11px;padding:12px 14px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box");inp.type="password";inp.placeholder="Password";inp.setAttribute("aria-label","Password");
+var err=mk("div","color:#e0413f;font-size:12.5px;height:16px;margin:9px 0 3px;font-weight:600","");
+var btn=mk("button","width:100%;border:0;border-radius:11px;padding:12px;background:#4f46e5;color:#fff;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;margin-top:4px","Unlock");btn.type="button";
+function ok(){try{localStorage.setItem("tl_ok","1");}catch(e){}ov.remove();}
+async function go(){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(inp.value));var x=Array.from(new Uint8Array(b)).map(function(z){return z.toString(16).padStart(2,"0");}).join("");if(x===H)ok();else{err.textContent="Wrong password";inp.value="";inp.focus();}}catch(e){err.textContent="Wrong password";}}
+btn.addEventListener("click",go);inp.addEventListener("keydown",function(e){if(e.key==="Enter")go();});
+c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appendChild(err);c.appendChild(btn);ov.appendChild(c);
+(d.body||d.documentElement).appendChild(ov);setTimeout(function(){inp.focus();},60);
+})();
+</script>
 <div class="top">
   <div class="brand"><span class="mark" id="bmark"></span><div><div class="nm">Treadline</div><div class="sub" id="subT"></div></div></div>
   <span class="badge" id="demoTag"></span>
