@@ -145,7 +145,7 @@ var H="923f691f3e24dfee676c1313c5346ff91bba58e737f2fe0d4b9c5a41af5e43c0",d=docum
 function mk(t,s,x){var n=d.createElement(t);if(s)n.setAttribute("style",s);if(x!=null)n.textContent=x;return n;}
 var ov=mk("div","position:fixed;inset:0;z-index:99999;background:#0d0f14;display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans Arabic',sans-serif;padding:20px");
 var c=mk("div","background:#fff;border-radius:18px;padding:30px 26px;width:340px;max-width:92vw;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);text-align:center");
-var lg=mk("div","width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#4f46e5,#4338ca);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px","◎");
+var lg=mk("div","width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#4f46e5,#4338ca);margin:0 auto 16px;display:flex;align-items:center;justify-content:center");(function(){var N2="http://www.w3.org/2000/svg";function s(t,a){var n=d.createElementNS(N2,t);for(var k in a)n.setAttribute(k,a[k]);return n;}var g=s("svg",{viewBox:"0 0 24 24",fill:"none",width:"26",height:"26"});[["circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}],["circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}],["circle",{cx:12,cy:12,r:1,fill:"#fff"}],["path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"}]].forEach(function(e){g.appendChild(s(e[0],e[1]));});lg.appendChild(g);})();
 var h=mk("div","font-weight:800;font-size:20px;letter-spacing:-.02em;color:#14171d","Treadline");
 var sub=mk("div","color:#666d79;font-size:13.5px;margin:6px 0 20px","Enter the password to view the demo");
 var inp=mk("input","width:100%;border:1px solid #ecedf1;border-radius:11px;padding:12px 14px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box");inp.type="password";inp.placeholder="Password";inp.setAttribute("aria-label","Password");
@@ -183,6 +183,7 @@ function el(t,a,k){const n=document.createElement(t);if(a)for(const x in a){cons
   if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c==null||c===false)return;n.appendChild(typeof c==="object"?c:document.createTextNode(String(c)));});return n;}
 function sv(t,a,k){const n=document.createElementNS(NS,t);if(a)for(const x in a){if(a[x]!=null)n.setAttribute(x,a[x]);}if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c)n.appendChild(c);});return n;}
 function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function tyg(){return sv("svg",{viewBox:"0 0 24 24",fill:"none",width:"16",height:"16","aria-hidden":"true"},[sv("circle",{cx:12,cy:12,r:9,stroke:"#94a3b8","stroke-width":"2"}),sv("circle",{cx:12,cy:12,r:3.4,stroke:"#94a3b8","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:1,fill:"#64748b"})]);}
 function icon(name){const P={
   bag:["M6 7h12l1 13H5z","M9 7a3 3 0 016 0"],
   wa:["M21 11.5a8.5 8.5 0 01-12.6 7.5L3 21l2-5.4A8.5 8.5 0 1121 11.5z"],
@@ -281,7 +282,7 @@ function render(){
   document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
   document.getElementById("enBtn").classList.toggle("on",lang==="en");
   document.getElementById("arBtn").classList.toggle("on",lang==="ar");
-  const bm=document.getElementById("bmark");clear(bm);const bi=icon("bag");bi.style.color="#fff";bm.appendChild(bi);
+  const bm=document.getElementById("bmark");clear(bm);bm.appendChild(sv("svg",{viewBox:"0 0 24 24",fill:"none",width:"18",height:"18"},[sv("circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}),sv("circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:1,fill:"#fff"}),sv("path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"})]));
   document.getElementById("subT").textContent=t("sub");
   document.getElementById("demoTag").textContent=t("demo");
   document.getElementById("homeLink").textContent=t("home");
@@ -339,7 +340,7 @@ function render(){
         el("div",{class:"exq num",text:l.q.toLocaleString(lang==="ar"?"ar-OM":"en-US")+"×"}),
         el("div",{class:"exmid"},[
           el("div",{class:"exraw"},[t("read")+": ",el("b",{text:"“"+l.raw+"”"})]),
-          el("div",{class:"exmatch"},[p?pname(p):"—",el("span",{class:"arrow"},"→"),el("span",{class:"conf "+cf,text:t(l.c)})])
+          el("div",{class:"exmatch"},[tyg(),p?pname(p):"—",el("span",{class:"arrow"},"→"),el("span",{class:"conf "+cf,text:t(l.c)})])
         ]),
         el("div",{class:"exprice",text:p?fmt(p.price*l.q):"—"})
       ]);
