@@ -107,6 +107,30 @@
   .clegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
   .howlist{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:9px}
   .howlist li{font-size:13px;line-height:1.55;color:var(--ink-2)}
+  /* ---- demo nav menu ---- */
+  .menubtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .menubtn:hover{background:var(--bg)}
+  .navsheet{position:fixed;inset:0;background:rgba(11,18,32,.5);opacity:0;pointer-events:none;transition:.2s;z-index:200}
+  .navsheet.show{opacity:1;pointer-events:auto}
+  .navpanel{position:fixed;top:0;inset-inline-end:0;height:100%;width:332px;max-width:88vw;background:#fff;transform:translateX(110%);transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:-18px 0 50px -16px rgba(16,18,24,.4);overflow-y:auto;z-index:201;display:flex;flex-direction:column}
+  [dir=rtl] .navpanel{transform:translateX(-110%)}
+  .navpanel.show{transform:none}
+  .np-head{display:flex;align-items:center;gap:10px;padding:18px;border-bottom:1px solid var(--line)}
+  .np-mark{width:32px;height:32px;border-radius:9px;background:var(--ink);display:grid;place-items:center}
+  .np-nm{font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .np-x{margin-inline-start:auto;border:0;background:var(--line-2);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:15px;color:var(--ink-2);font-family:inherit}
+  .np-list{padding:12px;display:flex;flex-direction:column;gap:4px}
+  .np-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:11px;text-decoration:none;color:var(--txt)}
+  .np-item:hover{background:var(--bg)}
+  .np-item.active{background:var(--brand-bg)}
+  .np-ic{width:36px;height:36px;border-radius:10px;background:var(--bg);display:grid;place-items:center;flex:none;color:var(--ink-2)}
+  .np-item.active .np-ic{background:#fff;color:var(--brand)}
+  .np-ic svg{width:18px;height:18px}
+  .np-tx{display:flex;flex-direction:column}
+  .np-t{font-weight:700;font-size:14px}
+  .np-item.active .np-t{color:var(--brand-ink)}
+  .np-s{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .np-foot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint)}
   @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:640px){
     .content{padding:18px 14px 50px}
@@ -147,7 +171,7 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
   <div class="brand"><span class="mark" id="bmark"></span><div><div class="nm">Treadline</div><div class="sub" id="subT"></div></div></div>
   <span class="badge" id="demoTag"></span>
   <div class="grow"></div>
-  <a class="adminlink" href="index.html" id="homeLink"></a>
+  <button class="menubtn" id="homeLink" type="button" onclick="openNav()"></button>
   <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
 </div>
 
@@ -245,7 +269,7 @@ const fdate=(d)=>d.toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{day:"2-digit"
 const stChip={now:"chip c-now",soon:"chip c-soon",ok:"chip c-ok",over:"chip c-over"};
 
 const TXT={
- en:{sub:"Re-order Planner", demo:"Demo · sample data", home:"↗ All demos",
+ en:{sub:"Re-order Planner", demo:"Demo · sample data", home:"☰ Menu",
   planner:"Replenishment plan", product:"Tyre", stock:"In stock", velocity:"Sales / week (8 wks)", cover:"Cover", status:"Status", orderQty:"Order qty",
   kNow:"Order now", kNowSub:"won't last the import lead time", kSoon:"Order soon", kSoonSub:"below reorder point",
   kDead:"Cash in dead stock", kDeadSub:"overstocked lines", kPO:"Suggested PO", kPOSub:"{n} lines to order",
@@ -260,7 +284,7 @@ const TXT={
   step3:"A new shipment takes {lead} weeks to arrive, plus {safety} weeks of safety stock — so we must cover {cover} weeks of demand.",
   step4:"That sets the reorder point at {rop} units. Current stock is {stock}.",
   step5:"To rebuild a healthy buffer, the suggested order is {rec} units (adjust above)."},
- ar:{sub:"مخطط إعادة الطلب", demo:"عرض تجريبي · بيانات", home:"↗ كل العروض",
+ ar:{sub:"مخطط إعادة الطلب", demo:"عرض تجريبي · بيانات", home:"☰ القائمة",
   planner:"خطة التزويد", product:"الإطار", stock:"المخزون", velocity:"المبيعات / أسبوع (٨ أسابيع)", cover:"التغطية", status:"الحالة", orderQty:"كمية الطلب",
   kNow:"اطلب الآن", kNowSub:"لن يكفي حتى وصول الشحنة", kSoon:"اطلب قريباً", kSoonSub:"تحت نقطة إعادة الطلب",
   kDead:"نقد في مخزون راكد", kDeadSub:"أصناف فائضة", kPO:"أمر شراء مقترح", kPOSub:"{n} أصناف للطلب",
@@ -389,6 +413,27 @@ function openDetail(id){
 }
 function closeDrawer(){selId=null;document.getElementById("drawer").classList.remove("show");document.getElementById("scrim").classList.remove("show");}
 render();
+</script>
+<div class="navsheet" id="navsheet" onclick="if(event.target===this)closeNav()"></div>
+<aside class="navpanel" id="navpanel">
+  <div class="np-head">
+    <span class="np-mark"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.6" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="12" r="1" fill="#fff"/><path d="M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+    <span class="np-nm">Treadline</span>
+    <button class="np-x" type="button" onclick="closeNav()">✕</button>
+  </div>
+  <div class="np-list">
+    <a class="np-item" href="index.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span><span class="np-tx"><span class="np-t">Overview</span><span class="np-s">All four views</span></span></a>
+    <a class="np-item" href="treadline-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></span><span class="np-tx"><span class="np-t">Distributor dashboard</span><span class="np-s">Cheque &amp; credit control</span></span></a>
+    <a class="np-item" href="treadline-order-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.6 9H7.5z"/><path d="M6 6 5.2 3H2"/><path d="M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"/></svg></span><span class="np-tx"><span class="np-t">Dealer ordering app</span><span class="np-s">Browse &amp; order tyres</span></span></a>
+    <a class="np-item" href="treadline-intake-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.1L18 9l-4.3 1.9L12 15l-1.7-4.1L6 9z"/></svg></span><span class="np-tx"><span class="np-t">AI order intake</span><span class="np-s">WhatsApp / PDF → Odoo</span></span></a>
+    <a class="np-item" href="treadline-reorder-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3l9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/></svg></span><span class="np-tx"><span class="np-t">Re-order planner</span><span class="np-s">Forecast &amp; purchase orders</span></span></a>
+  </div>
+  <div class="np-foot">Treadline · demo with sample data</div>
+</aside>
+<script>
+function openNav(){document.getElementById('navsheet').classList.add('show');document.getElementById('navpanel').classList.add('show');}
+function closeNav(){document.getElementById('navsheet').classList.remove('show');document.getElementById('navpanel').classList.remove('show');}
+(function(){var p=(location.pathname.split('/').pop()||'index.html');Array.prototype.forEach.call(document.querySelectorAll('.navpanel .np-item'),function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();
 </script>
 </body>
 </html>
