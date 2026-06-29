@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treadline — Dealer Ordering App (Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d0f14; --ink-2:#1f2430; --txt:#14171d; --muted:#666d79; --faint:#9aa0ab;
+    --line:#ecedf1; --line-2:#f4f5f7; --bg:#f7f8fa; --card:#ffffff;
+    --brand:#4f46e5; --brand-2:#6366f1; --brand-ink:#4338ca; --brand-bg:#eef0fe;
+    --ok:#15a34a; --ok-bg:#e9f6ee; --warn:#b7791f; --warn-bg:#fbf3e0;
+    --bad:#e0413f; --bad-bg:#fdecec; --info:#4f46e5; --info-bg:#eef0fe;
+    --sh:0 1px 2px rgba(16,18,24,.04),0 1px 3px rgba(16,18,24,.03);
+    --sh-lg:0 24px 60px -22px rgba(16,18,24,.30);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:14px;color:var(--txt);letter-spacing:-.005em;
+    background:radial-gradient(1200px 600px at 50% -10%, #eef0fe 0%, var(--bg) 55%);min-height:100vh}
+  .num{font-variant-numeric:tabular-nums}
+  .stage{display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px}
+  /* toolbar above the phone */
+  .toolbar{width:100%;max-width:860px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .brand .mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand),#4338ca);display:grid;place-items:center;color:#fff}
+  .badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--warn-bg);color:var(--warn);padding:4px 9px;border-radius:999px;border:1px solid #fde68a}
+  .grow{flex:1}
+  .ctrl{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px 6px 5px 11px;box-shadow:var(--sh)}
+  .ctrl label{font-size:11px;color:var(--muted);font-weight:700}
+  .ctrl select{border:0;background:transparent;font-family:inherit;font-weight:700;font-size:13px;color:var(--txt);cursor:pointer;outline:none}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;box-shadow:var(--sh)}
+  .toggle button{border:0;background:#fff;padding:8px 12px;font-weight:700;cursor:pointer;color:var(--muted);font-size:13px;font-family:inherit}
+  .toggle button.on{background:var(--ink);color:#fff}
+  .adminlink{font-size:12.5px;color:var(--brand-ink);font-weight:700;text-decoration:none;border:1px solid #e2e4fb;background:#f4f5fe;border-radius:10px;padding:8px 12px}
+
+  /* phone */
+  .phone{width:432px;max-width:96vw;height:872px;max-height:86vh;background:#fff;border-radius:34px;border:1px solid var(--line);
+    box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .appbar{padding:16px 18px 14px;background:var(--ink);color:#fff;flex:none}
+  .appbar .r1{display:flex;align-items:center;gap:10px}
+  .appbar .nm{font-weight:800;font-size:15px}
+  .appbar .sub{font-size:11.5px;color:#9fb6c7;margin-top:1px}
+  .appbar .cart{margin-inline-start:auto;position:relative;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.12);display:grid;place-items:center;cursor:pointer;border:0;color:#fff}
+  .appbar .cart svg{width:18px;height:18px}
+  .appbar .cart .b{position:absolute;top:-5px;inset-inline-end:-5px;background:var(--brand-2);color:#ffffff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:999px;display:grid;place-items:center;padding:0 4px}
+  .credit{margin-top:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:11px 13px;display:flex;align-items:center;gap:11px}
+  .credit .ck{font-size:11px;color:#9fb6c7;font-weight:600}
+  .credit .cv{font-weight:800;font-size:16px;color:#fff;margin-top:1px}
+  .credit .pill{margin-inline-start:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px}
+  .pill.ok{background:rgba(21,163,74,.2);color:#7ff0a8} .pill.bad{background:rgba(220,38,38,.22);color:#ffb4b4}
+
+  .screen{flex:1;overflow-y:auto;background:var(--bg)}
+  .pad{padding:16px 16px 22px}
+  .search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:12px}
+  .search svg{width:17px;height:17px;color:var(--faint)} .search input{border:0;outline:none;font-family:inherit;font-size:14px;width:100%;background:transparent}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px}
+  .chips button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted);font-family:inherit}
+  .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  .prod{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:var(--sh);display:flex;gap:13px}
+  .tyre{width:62px;height:62px;flex:none;border-radius:14px;background:linear-gradient(135deg,#0f172a,#1e293b);display:grid;place-items:center}
+  .tyre svg{width:42px;height:42px}
+  .prod .info{flex:1;min-width:0}
+  .prod .brand2{font-size:11px;color:var(--brand-ink);font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+  .prod .size{font-weight:800;font-size:16px;margin-top:1px}
+  .prod .spec{font-size:12px;color:var(--muted);margin-top:2px}
+  .stock{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;margin-top:7px;padding:3px 9px;border-radius:999px}
+  .stock::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .s-ok{background:var(--ok-bg);color:var(--ok)} .s-low{background:var(--warn-bg);color:var(--warn)} .s-out{background:var(--bad-bg);color:var(--bad)}
+  .pr3{display:flex;align-items:flex-end;justify-content:space-between;margin-top:11px;gap:10px}
+  .price .list{font-size:11px;color:var(--faint);text-decoration:line-through}
+  .price .you{font-weight:800;font-size:17px}
+  .price .yt{font-size:10px;color:var(--brand-ink);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .stepper button{border:0;background:#fff;width:32px;height:34px;cursor:pointer;font-family:inherit;color:var(--ink-2);display:grid;place-items:center}
+  .stepper button:disabled{opacity:.35;cursor:not-allowed}
+  .stepper svg{width:14px;height:14px}
+  .stepper .q{min-width:30px;text-align:center;font-weight:800}
+  .add{border:0;background:var(--brand);color:#fff;border-radius:10px;padding:9px 15px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit}
+  .add:disabled{background:#cbd5e1;cursor:not-allowed}
+
+  /* cart */
+  .citem{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:11px;display:flex;gap:12px;align-items:center}
+  .citem .tyre{width:48px;height:48px;border-radius:11px}.citem .tyre svg{width:32px;height:32px}
+  .citem .nm{font-weight:800;font-size:14px}.citem .sp{font-size:11.5px;color:var(--muted)}
+  .citem .rm{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:16px;font-family:inherit}
+  .summary{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--sh);margin-top:4px}
+  .srow{display:flex;justify-content:space-between;padding:6px 0;font-size:13.5px}
+  .srow.tot{border-top:1px solid var(--line);margin-top:6px;padding-top:11px;font-weight:800;font-size:16px}
+  .creditbox{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:13px}
+  .creditbox .cr{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0}
+  .hold{display:flex;gap:10px;align-items:flex-start;background:var(--bad-bg);border:1px solid #f6cccc;color:#b91c1c;border-radius:13px;padding:12px 13px;margin-top:13px;font-size:12.5px}
+  .hold svg{width:17px;height:17px;flex:none;margin-top:1px}
+  .checkout{width:100%;border:0;border-radius:13px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;margin-top:14px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;gap:9px}
+  .checkout:disabled{background:#cbd5e1;cursor:not-allowed}
+  .checkout svg{width:18px;height:18px}
+  .empty{text-align:center;color:var(--muted);padding:50px 20px;font-size:13.5px}
+  .empty .ei{width:54px;height:54px;border-radius:16px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 14px}
+  .empty .ei svg{width:26px;height:26px;color:var(--faint)}
+
+  /* orders */
+  .order{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+  .order .o1{display:flex;align-items:center;gap:9px}
+  .order .oid{font-weight:800}.order .od{font-size:11.5px;color:var(--muted)}
+  .ostat{margin-inline-start:auto;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px}
+  .o-deliv{background:var(--ok-bg);color:var(--ok)} .o-disp{background:var(--info-bg);color:var(--info)} .o-conf{background:var(--warn-bg);color:var(--warn)}
+  .order .oitems{font-size:12.5px;color:var(--muted);margin-top:8px}
+  .order .o3{display:flex;align-items:center;justify-content:space-between;margin-top:11px;border-top:1px solid var(--line-2);padding-top:11px}
+  .order .otot{font-weight:800}
+  .reorder{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 13px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;color:var(--ink-2)}
+
+  .tabs{display:flex;border-top:1px solid var(--line);background:#fff;flex:none}
+  .tabs button{flex:1;border:0;background:#fff;padding:11px 0 13px;cursor:pointer;font-family:inherit;color:var(--faint);font-weight:700;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+  .tabs button svg{width:21px;height:21px}
+  .tabs button.on{color:var(--brand-ink)}
+  .tabs button .tb{position:absolute;top:-1px;inset-inline-end:50%;transform:translateX(50%);margin-inline-start:14px;background:var(--brand);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:999px;display:grid;place-items:center;padding:0 4px}
+
+  .toast{position:fixed;inset-block-end:26px;inset-inline:0;margin-inline:auto;width:max-content;max-width:90vw;background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:var(--sh-lg);z-index:70;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;display:flex;align-items:center;gap:9px}
+  .toast.show{opacity:1;transform:none}.toast svg{width:16px;height:16px}
+  .note{width:100%;max-width:432px;text-align:center;color:var(--faint);font-size:11.5px;margin-top:16px;line-height:1.7}
+  @media(max-width:560px){
+    body{background:#fff}
+    .stage{padding:0}
+    .toolbar{flex-wrap:nowrap;gap:8px;margin:0;padding:9px 12px;height:56px;position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:30}
+    .toolbar .badge,.toolbar .adminlink{display:none}
+    .ctrl{padding:5px 6px 5px 10px;min-width:0}
+    .ctrl label{display:none}
+    .ctrl select{max-width:130px;text-overflow:ellipsis}
+    .phone{width:100%;max-width:100%;height:calc(100vh - 56px);max-height:none;border:0;border-radius:0;box-shadow:none}
+    .note{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="toolbar">
+    <div class="brand"><span class="mark" id="bmark"></span><span>Treadline</span></div>
+    <span class="badge" id="demoTag"></span>
+    <div class="grow"></div>
+    <div class="ctrl"><label id="viewAsLbl" for="dealerSel"></label><select id="dealerSel" aria-label="Viewing as dealer"></select></div>
+    <a class="adminlink" href="treadline-demo.html" id="adminLink"></a>
+    <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
+  </div>
+
+  <div class="phone">
+    <div class="appbar" id="appbar"></div>
+    <div class="screen"><div class="pad" id="screen"></div></div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(tag,a,k){const n=document.createElement(tag);if(a)for(const x in a){const v=a[x];if(v==null)continue;
+  if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x==="style")n.setAttribute("style",v);
+  else if(x.slice(0,2)==="on"&&typeof v==="function")n.addEventListener(x.slice(2),v);else n.setAttribute(x,v);}
+  if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c==null||c===false)return;n.appendChild(typeof c==="object"?c:document.createTextNode(String(c)));});return n;}
+function sv(tag,a,k){const n=document.createElementNS(NS,tag);if(a)for(const x in a){if(a[x]!=null)n.setAttribute(x,a[x]);}if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c)n.appendChild(c);});return n;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function icon(name){const P={
+  cart:["M6 6h15l-1.6 9H7.5z","M6 6 5.2 3H2","M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"],
+  shop:["M4 9 5.2 4h13.6L20 9","M5 9v11h14V9","M9 13h6v7H9z"],
+  list:["M8 6h13M8 12h13M8 18h13","M3.5 6h.01M3.5 12h.01M3.5 18h.01"],
+  plus:["M12 5v14M5 12h14"], minus:["M5 12h14"], check:["M20 6 9 17l-5-5"],
+  search:["M11 19a8 8 0 100-16 8 8 0 000 16z","M21 21l-4.3-4.3"], x:["M18 6 6 18M6 6l12 12"],
+  lock:["M6 11V8a6 6 0 0112 0v3","M5 11h14v9a1 1 0 01-1 1H6a1 1 0 01-1-1z"],
+  bag:["M6 7h12l1 13H5z","M9 7a3 3 0 016 0"]
+};const g=sv("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.8","stroke-linecap":"round","stroke-linejoin":"round"});(P[name]||[]).forEach(d=>g.appendChild(sv("path",{d})));return g;}
+function tyre(){return sv("svg",{viewBox:"0 0 48 48",fill:"none"},[
+  sv("circle",{cx:24,cy:24,r:19,stroke:"#475569","stroke-width":"3"}),
+  sv("circle",{cx:24,cy:24,r:12.5,stroke:"#94a3b8","stroke-width":"2"}),
+  sv("circle",{cx:24,cy:24,r:6,fill:"#4f46e5"}),
+  ...[0,45,90,135,180,225,270,315].map(deg=>sv("line",{x1:24,y1:6,x2:24,y2:11,stroke:"#64748b","stroke-width":"2","stroke-linecap":"round",transform:`rotate(${deg} 24 24)`}))
+]);}
+
+const branches=["Ghala","Sohar","Salalah","Nizwa","Barka"];
+const dealers=[
+  {id:1, en:"Al Maha Auto Garage", ar:"كراج المها للسيارات", bal:4250, lim:5000, overdue:false},
+  {id:2, en:"Rustaq Garage", ar:"كراج الرستاق", bal:1150, lim:4000, overdue:false},
+  {id:3, en:"Sohar Truck Spares", ar:"صحار لقطع الشاحنات", bal:6750, lim:10000, overdue:false},
+  {id:4, en:"Salalah Fleet Services", ar:"خدمات أسطول صلالة", bal:12300, lim:15000, overdue:false},
+  {id:5, en:"Nizwa Tyre Centre", ar:"مركز نزوى للإطارات", bal:8900, lim:8000, overdue:false},
+  {id:6, en:"Barka Motors", ar:"بركاء موتورز", bal:3180, lim:3000, overdue:true},
+];
+const products=[
+  {id:"p1", brand:"Dunlop", pat:"SP Sport LM705", size:"205/55R16", idx:"91V", type:"car", list:27.500, you:24.500, stock:{Ghala:40,Sohar:12,Salalah:8,Nizwa:6,Barka:4}},
+  {id:"p2", brand:"Dunlop", pat:"SP Sport LM705", size:"215/60R16", idx:"95H", type:"car", list:30.000, you:27.000, stock:{Ghala:22,Sohar:9,Salalah:5,Nizwa:0,Barka:2}},
+  {id:"p3", brand:"Dunlop", pat:"Grandtrek AT5", size:"265/70R16", idx:"112S", type:"suv", list:43.000, you:39.500, stock:{Ghala:18,Sohar:6,Salalah:10,Nizwa:4,Barka:1}},
+  {id:"p4", brand:"Dunlop", pat:"Grandtrek PT3", size:"235/65R17", idx:"108V", type:"suv", list:46.500, you:42.000, stock:{Ghala:9,Sohar:3,Salalah:2,Nizwa:1,Barka:0}},
+  {id:"p5", brand:"Dunlop", pat:"Enasave EC300", size:"195/65R15", idx:"91H", type:"car", list:23.000, you:21.000, stock:{Ghala:55,Sohar:20,Salalah:14,Nizwa:9,Barka:6}},
+  {id:"p6", brand:"Dunlop", pat:"SP Sport Maxx", size:"225/45R17", idx:"94Y", type:"perf", list:37.000, you:33.500, stock:{Ghala:7,Sohar:2,Salalah:1,Nizwa:0,Barka:0}},
+  {id:"p7", brand:"Dunlop", pat:"SP LT5", size:"285/75R16", idx:"122Q", type:"truck", list:60.000, you:55.000, stock:{Ghala:14,Sohar:8,Salalah:5,Nizwa:3,Barka:2}},
+  {id:"p8", brand:"Dunlop", pat:"Grandtrek AT3", size:"31x10.5R15", idx:"109S", type:"suv", list:52.000, you:48.000, stock:{Ghala:0,Sohar:1,Salalah:0,Nizwa:0,Barka:0}},
+  {id:"p9", brand:"Falken", pat:"Wildpeak A/T", size:"245/70R16", idx:"111T", type:"suv", list:39.000, you:36.000, stock:{Ghala:11,Sohar:4,Salalah:7,Nizwa:2,Barka:1}},
+];
+const orders=[
+  {id:"SO-2041", date:"2026-06-22", status:"deliv", items:[["p1",8],["p5",4]], dealer:1},
+  {id:"SO-2068", date:"2026-06-26", status:"disp", items:[["p3",4]], dealer:1},
+  {id:"SO-2080", date:"2026-06-28", status:"conf", items:[["p7",2],["p9",4]], dealer:1},
+];
+
+const TXT={
+ en:{demo:"Demo · sample data", viewAs:"Viewing as", admin:"↗ Distributor dashboard",
+  sub:"Order from Hamdan Trading", creditAvail:"Credit available", onHold:"On hold", good:"Good standing",
+  shop:"Shop", cart:"Cart", ordersT:"Orders", search:"Search size, brand…",
+  all:"All", car:"Passenger", suv:"SUV / 4x4", perf:"Performance", truck:"Truck",
+  inStock:"In stock", lowStock:"Low stock", outStock:"Out of stock", across:"across {n} branches",
+  yourPrice:"Your price", add:"Add", added:"Added to cart",
+  emptyCart:"Your cart is empty", emptyCartS:"Add tyres from the Shop tab.",
+  subtotal:"Subtotal", vat:"VAT (5%)", total:"Total", item:"item", items:"items",
+  creditLimit:"Credit limit", outstanding:"Outstanding", afterOrder:"After this order",
+  place:"Place order", placed:"Order placed", removed:"Removed",
+  holdOver:"Account on hold — settle the overdue / bounced cheque with Hamdan before ordering.",
+  holdExceed:"This order exceeds your available credit by {amt}. Reduce the order or clear a payment.",
+  noOrders:"No orders yet", noOrdersS:"Your placed orders will appear here.",
+  reorder:"Reorder", st_deliv:"Delivered", st_disp:"Dispatched", st_conf:"Confirmed",
+  note:"Demo with sample data — not real stock or prices. Credit status mirrors the distributor's Treadline dashboard."},
+ ar:{demo:"عرض تجريبي · بيانات", viewAs:"العرض بصفة", admin:"↗ لوحة الموزّع",
+  sub:"اطلب من حمدان للتجارة", creditAvail:"الائتمان المتاح", onHold:"موقوف", good:"وضع جيد",
+  shop:"المتجر", cart:"السلة", ordersT:"الطلبات", search:"ابحث عن مقاس أو علامة…",
+  all:"الكل", car:"سيارات", suv:"دفع رباعي", perf:"رياضية", truck:"شاحنات",
+  inStock:"متوفر", lowStock:"كمية قليلة", outStock:"غير متوفر", across:"في {n} فروع",
+  yourPrice:"سعرك", add:"أضف", added:"أُضيف إلى السلة",
+  emptyCart:"سلتك فارغة", emptyCartS:"أضف إطارات من تبويب المتجر.",
+  subtotal:"المجموع الفرعي", vat:"ضريبة (٥٪)", total:"الإجمالي", item:"صنف", items:"أصناف",
+  creditLimit:"حد الائتمان", outstanding:"المستحق", afterOrder:"بعد هذا الطلب",
+  place:"تأكيد الطلب", placed:"تم تأكيد الطلب", removed:"تم الحذف",
+  holdOver:"الحساب موقوف — سوِّ الشيك المتأخر/المرتجع مع حمدان قبل الطلب.",
+  holdExceed:"هذا الطلب يتجاوز ائتمانك المتاح بمقدار {amt}. قلّل الطلب أو سدد دفعة.",
+  noOrders:"لا توجد طلبات بعد", noOrdersS:"ستظهر طلباتك هنا.",
+  reorder:"إعادة الطلب", st_deliv:"تم التوصيل", st_disp:"تم الشحن", st_conf:"مؤكد",
+  note:"عرض تجريبي ببيانات افتراضية — ليست مخزوناً أو أسعاراً حقيقية. حالة الائتمان مطابقة للوحة Treadline لدى الموزّع."}
+};
+let lang="en", dealerId=1, view="shop", filterType="all", query="", cart={};
+const t=(k)=>TXT[lang][k]||k;
+const fmt=(n)=>"OMR "+n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:3,maximumFractionDigits:3});
+const fmt0=(n)=>n.toLocaleString(lang==="ar"?"ar-OM":"en-US");
+const cur=()=>dealers.find(d=>d.id===dealerId);
+const prod=(id)=>products.find(p=>p.id===id);
+const stockTotal=(p)=>Object.values(p.stock).reduce((a,b)=>a+b,0);
+const cartCount=()=>Object.values(cart).reduce((a,b)=>a+b,0);
+const cartSub=()=>Object.entries(cart).reduce((s,[id,q])=>s+prod(id).you*q,0);
+const blocked=()=>{const d=cur();return d.bal>d.lim||d.overdue;};
+const available=()=>Math.max(cur().lim-cur().bal,0);
+
+function setLang(l){lang=l;render();}
+function setView(v){view=v;render();}
+function toastMsg(m){const tn=document.getElementById("toast");clear(tn);tn.appendChild(icon("check"));tn.appendChild(document.createTextNode(m));tn.classList.add("show");clearTimeout(window._tt);window._tt=setTimeout(()=>tn.classList.remove("show"),2200);}
+function addToCart(id,n){const max=stockTotal(prod(id));cart[id]=Math.min((cart[id]||0)+n,max);if(cart[id]<=0)delete cart[id];render();if(n>0)toastMsg(t("added"));}
+function setQty(id,q){const max=stockTotal(prod(id));cart[id]=Math.max(0,Math.min(q,max));if(cart[id]<=0)delete cart[id];render();}
+function removeItem(id){delete cart[id];render();toastMsg(t("removed"));}
+function placeOrder(){if(blocked()||cartSub()*1.05>available())return;const id="SO-"+(2080+Math.floor(Math.random()*900));orders.unshift({id,date:"2026-06-29",status:"conf",items:Object.entries(cart).map(([i,q])=>[i,q]),dealer:dealerId});cart={};view="orders";render();toastMsg(t("placed")+" · "+id);}
+function reorder(o){o.items.forEach(([i,q])=>{cart[i]=Math.min((cart[i]||0)+q,stockTotal(prod(i)));});view="cart";render();}
+function switchDealer(v){dealerId=Number(v);render();}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.getElementById("enBtn").classList.toggle("on",lang==="en");
+  document.getElementById("arBtn").classList.toggle("on",lang==="ar");
+  const bm=document.getElementById("bmark");clear(bm);const bi=icon("bag");bi.style.width="17px";bi.style.height="17px";bi.style.color="#fff";bm.appendChild(bi);
+  document.getElementById("demoTag").textContent=t("demo");
+  document.getElementById("viewAsLbl").textContent=t("viewAs");
+  document.getElementById("adminLink").textContent=t("admin");
+  document.getElementById("note").textContent=t("note");
+  const ds=document.getElementById("dealerSel");if(ds.childElementCount!==dealers.length){clear(ds);dealers.forEach(d=>ds.appendChild(el("option",{value:String(d.id)})));}
+  Array.from(ds.children).forEach((o,i)=>o.textContent=dealers[i][lang]);ds.value=String(dealerId);ds.onchange=(e)=>switchDealer(e.target.value);
+
+  // appbar
+  const ab=document.getElementById("appbar");clear(ab);
+  const d=cur();
+  ab.appendChild(el("div",{class:"r1"},[
+    el("div",{},[el("div",{class:"nm",text:d[lang]}),el("div",{class:"sub",text:t("sub")})]),
+    (()=>{const c=el("button",{class:"cart",onclick:()=>setView("cart")},[icon("cart")]);if(cartCount())c.appendChild(el("span",{class:"b",text:fmt0(cartCount())}));return c;})()
+  ]));
+  ab.appendChild(el("div",{class:"credit"},[
+    el("div",{},[el("div",{class:"ck",text:t("creditAvail")}),el("div",{class:"cv",text:fmt(available())})]),
+    el("span",{class:"pill "+(blocked()?"bad":"ok"),text:blocked()?t("onHold"):t("good")})
+  ]));
+
+  const sc=document.getElementById("screen");clear(sc);
+  if(view==="shop")renderShop(sc);
+  else if(view==="cart")renderCart(sc);
+  else renderOrders(sc);
+
+  // tabs
+  const tb=document.getElementById("tabs");clear(tb);
+  [["shop","shop"],["cart","cart"],["orders","list"]].forEach(([v,ic])=>{
+    const b=el("button",{class:view===v?"on":"",onclick:()=>setView(v)},[icon(ic),el("span",{text:t(v==="orders"?"ordersT":v)})]);
+    if(v==="cart"&&cartCount())b.appendChild(el("span",{class:"tb",text:fmt0(cartCount())}));
+    tb.appendChild(b);
+  });
+}
+
+function renderShop(sc){
+  sc.appendChild(el("div",{class:"search"},[icon("search"),el("input",{type:"text",name:"search",id:"searchInput","aria-label":t("search"),placeholder:t("search"),value:query,oninput:(e)=>{query=e.target.value;rerenderList();}})]));
+  const types=[["all","all"],["car","car"],["suv","suv"],["perf","perf"],["truck","truck"]];
+  const chips=el("div",{class:"chips"});
+  types.forEach(([v])=>chips.appendChild(el("button",{class:filterType===v?"on":"",onclick:()=>{filterType=v;rerenderList();},text:t(v)})));
+  sc.appendChild(chips);
+  const list=el("div",{id:"plist"});sc.appendChild(list);
+  fillList(list);
+}
+function rerenderList(){const l=document.getElementById("plist");if(l){clear(l);fillList(l);}}
+function fillList(list){
+  const q=query.trim().toLowerCase();
+  const rows=products.filter(p=>(filterType==="all"||p.type===filterType)&&(!q||(p.size+" "+p.brand+" "+p.pat).toLowerCase().includes(q)));
+  rows.forEach(p=>{
+    const tot=stockTotal(p), sc=tot===0?"s-out":tot<=15?"s-low":"s-ok", sl=tot===0?t("outStock"):tot<=15?t("lowStock"):t("inStock");
+    const q0=cart[p.id]||0;
+    list.appendChild(el("div",{class:"prod"},[
+      el("div",{class:"tyre"},tyre()),
+      el("div",{class:"info"},[
+        el("div",{class:"brand2",text:p.brand}),
+        el("div",{class:"size",text:p.size}),
+        el("div",{class:"spec",text:p.pat+" · "+p.idx}),
+        el("span",{class:"stock "+sc,text:sl+(tot?" · "+tot+" "+t("across").replace("{n}",fmt0(branches.length)):"")}),
+        el("div",{class:"pr3"},[
+          el("div",{class:"price"},[el("div",{class:"yt",text:t("yourPrice")}),el("span",{class:"list",text:fmt(p.list)})," ",el("span",{class:"you",text:fmt(p.you)})]),
+          tot===0 ? el("button",{class:"add",disabled:"true",text:t("outStock")})
+          : q0===0 ? el("button",{class:"add",onclick:()=>addToCart(p.id,1),text:t("add")})
+          : el("div",{class:"stepper"},[
+              el("button",{onclick:()=>addToCart(p.id,-1)},[icon("minus")]),
+              el("span",{class:"q num",text:fmt0(q0)}),
+              el("button",{onclick:()=>addToCart(p.id,1),disabled:q0>=tot?"true":null},[icon("plus")])
+            ])
+        ])
+      ])
+    ]));
+  });
+}
+
+function renderCart(sc){
+  const entries=Object.entries(cart);
+  if(!entries.length){sc.appendChild(el("div",{class:"empty"},[el("div",{class:"ei"},icon("cart")),el("div",{style:"font-weight:800;color:var(--ink-2);margin-bottom:4px",text:t("emptyCart")}),el("div",{text:t("emptyCartS")})]));return;}
+  entries.forEach(([id,q])=>{const p=prod(id);
+    sc.appendChild(el("div",{class:"citem"},[
+      el("div",{class:"tyre"},tyre()),
+      el("div",{style:"flex:1;min-width:0"},[el("div",{class:"nm",text:p.brand+" "+p.size}),el("div",{class:"sp",text:p.pat+" · "+fmt(p.you)})]),
+      el("div",{class:"stepper"},[
+        el("button",{onclick:()=>setQty(id,q-1)},[icon("minus")]),
+        el("span",{class:"q num",text:fmt0(q)}),
+        el("button",{onclick:()=>setQty(id,q+1),disabled:q>=stockTotal(p)?"true":null},[icon("plus")])
+      ]),
+      el("button",{class:"rm",text:"✕",onclick:()=>removeItem(id)})
+    ]));
+  });
+  const sub=cartSub(), vat=sub*0.05, total=sub+vat;
+  const afterAvail=available()-total;
+  const over=!blocked()&&total>available();
+  const sum=el("div",{class:"summary"},[
+    el("div",{class:"srow"},[el("span",{text:t("subtotal")}),el("span",{class:"num",text:fmt(sub)})]),
+    el("div",{class:"srow"},[el("span",{text:t("vat")}),el("span",{class:"num",text:fmt(vat)})]),
+    el("div",{class:"srow tot"},[el("span",{text:t("total")}),el("span",{class:"num",text:fmt(total)})]),
+    el("div",{class:"creditbox"},[
+      el("div",{class:"cr"},[el("span",{style:"color:var(--muted)",text:t("creditAvail")}),el("b",{class:"num",text:fmt(available())})]),
+      el("div",{class:"cr"},[el("span",{style:"color:var(--muted)",text:t("afterOrder")}),el("b",{class:"num",style:afterAvail<0?"color:var(--bad)":"",text:fmt(afterAvail)})])
+    ])
+  ]);
+  sc.appendChild(sum);
+  if(blocked()) sum.appendChild(el("div",{class:"hold"},[icon("lock"),el("span",{text:t("holdOver")})]));
+  else if(over) sum.appendChild(el("div",{class:"hold"},[icon("lock"),el("span",{text:t("holdExceed").replace("{amt}",fmt(total-available()))})]));
+  const canBuy=!blocked()&&!over;
+  sc.appendChild(el("button",{class:"checkout",disabled:canBuy?null:"true",onclick:placeOrder},[canBuy?icon("check"):icon("lock"),el("span",{text:canBuy?t("place"):t("onHold")})]));
+}
+
+function renderOrders(sc){
+  const mine=orders.filter(o=>o.dealer===dealerId);
+  if(!mine.length){sc.appendChild(el("div",{class:"empty"},[el("div",{class:"ei"},icon("list")),el("div",{style:"font-weight:800;color:var(--ink-2);margin-bottom:4px",text:t("noOrders")}),el("div",{text:t("noOrdersS")})]));return;}
+  const stc={deliv:"o-deliv",disp:"o-disp",conf:"o-conf"};
+  mine.forEach(o=>{
+    const tot=o.items.reduce((s,[i,q])=>s+prod(i).you*q,0)*1.05;
+    const nItems=o.items.reduce((s,[,q])=>s+q,0);
+    sc.appendChild(el("div",{class:"order"},[
+      el("div",{class:"o1"},[el("div",{},[el("div",{class:"oid",text:o.id}),el("div",{class:"od",text:fmtDate(o.date)})]),el("span",{class:"ostat "+stc[o.status],text:t("st_"+o.status)})]),
+      el("div",{class:"oitems",text:o.items.map(([i,q])=>fmt0(q)+"× "+prod(i).brand+" "+prod(i).size).join("  ·  ")}),
+      el("div",{class:"o3"},[el("span",{class:"otot num",text:fmt(tot)+" · "+fmt0(nItems)+" "+t(nItems===1?"item":"items")}),el("button",{class:"reorder",onclick:()=>reorder(o),text:t("reorder")})])
+    ]));
+  });
+}
+function fmtDate(s){return new Date(s).toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{day:"2-digit",month:"short",year:"numeric"});}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treadline — Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0d0f14;--txt:#14171d;--muted:#666d79;--faint:#9aa0ab;--line:#ecedf1;--bg:#f7f8fa;
+    --brand:#4f46e5;--brand-ink:#4338ca;--sh:0 1px 2px rgba(16,18,24,.04),0 18px 44px -22px rgba(16,18,24,.18);}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--txt);-webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+    background:radial-gradient(1100px 560px at 50% -8%, #eef0fe 0%, var(--bg) 55%);
+    display:flex;flex-direction:column;align-items:center;padding:48px 20px 60px}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+  .mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--brand),#4338ca);display:grid;place-items:center;color:#fff;box-shadow:0 10px 22px -8px rgba(14,165,164,.7)}
+  .mark svg{width:24px;height:24px}
+  .top .nm{font-weight:800;font-size:26px;letter-spacing:-.03em}
+  .badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:#fdf2dc;color:#c2740a;padding:5px 10px;border-radius:999px;border:1px solid #fde68a}
+  .hero{max-width:640px;text-align:center;margin-bottom:40px}
+  .hero h1{font-size:28px;font-weight:800;margin:0 0 12px;letter-spacing:-.03em;line-height:1.2}
+  .hero p{font-size:15.5px;color:var(--muted);margin:0;line-height:1.6}
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;width:100%;max-width:800px}
+  a.card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:var(--sh);transition:transform .15s, box-shadow .15s}
+  a.card:hover{transform:translateY(-3px);box-shadow:0 1px 3px rgba(16,24,40,.06),0 30px 60px -24px rgba(16,24,40,.32)}
+  .card .ic{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;margin-bottom:16px}
+  .card .ic svg{width:26px;height:26px}
+  .ic.a{background:#eef0fe;color:var(--brand-ink)} .ic.b{background:#eef0fe;color:#4f46e5}
+  .card h2{font-size:18px;margin:0 0 6px;font-weight:800}
+  .card .who{font-size:12px;font-weight:700;color:var(--brand-ink);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px}
+  .card p{font-size:13.5px;color:var(--muted);margin:0 0 16px;line-height:1.6}
+  .card .go{font-weight:800;font-size:13.5px;color:var(--brand-ink);display:inline-flex;align-items:center;gap:6px}
+  .foot{max-width:640px;text-align:center;color:var(--faint);font-size:12px;margin-top:34px;line-height:1.7}
+  @media(max-width:920px){.cards{grid-template-columns:1fr}}
+  @media(max-width:680px){.hero h1{font-size:23px}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5z"/><path d="M9 7a3 3 0 016 0"/></svg></span>
+    <span class="nm">Treadline</span>
+    <span class="badge">Demo</span>
+  </div>
+
+  <div class="hero">
+    <h1>Ordering, stock &amp; cheque-credit control for Oman tyre distributors</h1>
+    <p>Built to sit on top of Odoo. First customer: Hamdan Trading (sole Dunlop distributor in Oman). Four connected views, one product — explore them below.</p>
+  </div>
+
+  <div class="cards">
+    <a class="card" href="treadline-demo.html">
+      <span class="ic a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg></span>
+      <div class="who">For the distributor's team</div>
+      <h2>Distributor dashboard</h2>
+      <p>Cheque &amp; credit control: track every dealer's balance and credit limit, post-dated cheques, due-date reminders, and bounced-cheque alerts that auto-block a dealer.</p>
+      <span class="go">Open dashboard →</span>
+    </a>
+
+    <a class="card" href="treadline-order-demo.html">
+      <span class="ic b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.6 9H7.5z"/><path d="M6 6 5.2 3H2"/><path d="M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"/></svg></span>
+      <div class="who">For the dealers / garages</div>
+      <h2>Dealer ordering app</h2>
+      <p>Dealers browse tyres by size, see live branch stock and their own price, and order in seconds — checkout is blocked automatically if they're over their credit limit or have a bounced cheque.</p>
+      <span class="go">Open dealer app →</span>
+    </a>
+
+    <a class="card" href="treadline-intake-demo.html">
+      <span class="ic a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.1L18 9l-4.3 1.9L12 15l-1.7-4.1L6 9l4.3-1.9z"/><path d="M18.5 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span>
+      <div class="who">For the order desk</div>
+      <h2>AI order intake</h2>
+      <p>Orders arrive as WhatsApp messages, Arabic voice notes or PDF purchase orders — the AI reads them, matches each line to a tyre, and drafts a sales order in Odoo for one-click confirmation.</p>
+      <span class="go">Open intake →</span>
+    </a>
+
+    <a class="card" href="treadline-reorder-demo.html">
+      <span class="ic a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3l9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span>
+      <div class="who">For the purchasing manager</div>
+      <h2>Re-order planner</h2>
+      <p>Forecasts what to reorder and when — average sales × Oman summer uplift against the import lead time — flags stock-outs and dead stock, and suggests quantities to build a draft purchase order.</p>
+      <span class="go">Open planner →</span>
+    </a>
+  </div>
+
+  <p class="foot">Demos with sample data only — not Hamdan's real figures. Arabic (عربي) and English supported in both. The live version connects to Odoo for stock, prices, dealers and receivables.</p>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treadline — AI Order Intake (Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d0f14; --ink-2:#1f2430; --txt:#14171d; --muted:#666d79; --faint:#9aa0ab;
+    --line:#ecedf1; --line-2:#f4f5f7; --bg:#f7f8fa; --card:#ffffff;
+    --brand:#4f46e5; --brand-2:#6366f1; --brand-ink:#4338ca; --brand-bg:#eef0fe;
+    --ok:#15a34a; --ok-bg:#e9f6ee; --warn:#b7791f; --warn-bg:#fbf3e0;
+    --bad:#e0413f; --bad-bg:#fdecec; --info:#4f46e5; --info-bg:#eef0fe;
+    --wa:#1aa258; --wa-bg:#e7f6ec;
+    --sh-sm:0 1px 1.5px rgba(16,18,24,.04);
+    --sh:0 1px 2px rgba(16,18,24,.04),0 1px 3px rgba(16,18,24,.03);
+    --sh-lg:0 18px 48px -16px rgba(16,18,24,.22);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:14px;line-height:1.45;letter-spacing:-.005em}
+  .num{font-variant-numeric:tabular-nums}
+  /* top bar */
+  .top{display:flex;align-items:center;gap:13px;padding:15px 24px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:32px;height:32px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:#fff}
+  .brand .mark svg{width:17px;height:17px}
+  .brand .nm{font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .brand .sub{font-size:12px;color:var(--muted)}
+  .sep{width:1px;height:24px;background:var(--line)}
+  .badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--warn-bg);color:var(--warn);padding:4px 9px;border-radius:999px;border:1px solid #f3e3bf}
+  .grow{flex:1}
+  .adminlink{font-size:12.5px;color:var(--brand-ink);font-weight:700;text-decoration:none;border:1px solid #e2e4fb;background:#f4f5fe;border-radius:10px;padding:8px 12px}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .toggle button{border:0;background:#fff;padding:8px 12px;font-weight:700;cursor:pointer;color:var(--muted);font-size:13px;font-family:inherit}
+  .toggle button.on{background:var(--ink);color:#fff}
+  /* workspace */
+  .work{display:grid;grid-template-columns:370px 1fr;gap:18px;max-width:1240px;margin:0 auto;padding:20px 24px 50px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .ch{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .ch h2{font-size:14px;margin:0;font-weight:700}
+  .ch .count{margin-inline-start:auto;font-size:11px;color:var(--muted);font-weight:700;background:var(--line-2);padding:3px 9px;border-radius:999px}
+  /* inbox */
+  .inbox{max-height:78vh;overflow-y:auto}
+  .item{display:flex;gap:11px;padding:13px 16px;border-bottom:1px solid var(--line-2);cursor:pointer;transition:background .12s;align-items:flex-start}
+  .item:last-child{border-bottom:0}
+  .item:hover{background:#fafbfc}
+  .item.sel{background:var(--brand-bg)}
+  .chan{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+  .chan svg{width:17px;height:17px}
+  .chan.wa{background:var(--wa-bg);color:var(--wa)} .chan.pdf{background:var(--bad-bg);color:var(--bad)}
+  .chan.voice{background:var(--brand-bg);color:var(--brand)} .chan.excel{background:var(--ok-bg);color:var(--ok)}
+  .item .mid{flex:1;min-width:0}
+  .item .nm{font-weight:700;font-size:13.5px}
+  .item .snip{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item .meta{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .item .time{font-size:11px;color:var(--faint)}
+  .st{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.02em}
+  .st-new{background:var(--brand-bg);color:var(--brand-ink)} .st-rev{background:var(--warn-bg);color:var(--warn)} .st-draft{background:var(--ok-bg);color:var(--ok)}
+  /* detail */
+  .detail{min-height:60vh}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;color:var(--muted);text-align:center;padding:30px}
+  .empty .ei{width:56px;height:56px;border-radius:16px;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;margin-bottom:14px}
+  .empty .ei svg{width:26px;height:26px;color:var(--faint)}
+  .dhead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line-2)}
+  .dhead .nm{font-weight:800;font-size:16px} .dhead .mt{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;margin-top:2px}
+  .dhead .pill{margin-inline-start:auto;font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.bad{background:var(--bad-bg);color:var(--bad)}
+  .sec{padding:18px 20px;border-bottom:1px solid var(--line-2)}
+  .lbl{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+  .lbl svg{width:14px;height:14px}
+  /* raw message renders */
+  .wabub{background:var(--wa-bg);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:13.5px;line-height:1.6;max-width:90%;white-space:pre-line}
+  .watime{font-size:10px;color:#8aa899;text-align:end;margin-top:4px}
+  .voice{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .voice .play{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none}
+  .voice .play svg{width:15px;height:15px}
+  .wave{flex:1;height:24px;display:flex;align-items:center;gap:3px}
+  .wave i{flex:1;background:var(--brand-2);border-radius:2px;opacity:.55}
+  .transcript{margin-top:12px;font-size:13.5px;line-height:1.6;color:var(--txt)}
+  .transcript b{color:var(--faint);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:4px}
+  .pdf{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .pdf .pt{background:var(--bg);border-bottom:1px solid var(--line);padding:10px 14px;font-weight:800;font-size:12px;letter-spacing:.04em;display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+  .pdf .pt svg{width:14px;height:14px;color:var(--bad)}
+  .pdf .pr{display:flex;justify-content:space-between;padding:9px 14px;font-size:13px;border-bottom:1px solid var(--line-2)}
+  .pdf .pr:last-child{border-bottom:0}
+  /* extraction */
+  .parsing{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13.5px;padding:6px 0}
+  .spin{width:20px;height:20px;border:2.5px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .exline{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .exline:last-of-type{border-bottom:0}
+  .exq{width:34px;height:34px;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+  .exmid{flex:1;min-width:0}
+  .exraw{font-size:11.5px;color:var(--faint)} .exraw b{color:var(--muted);font-weight:600}
+  .exmatch{font-weight:700;font-size:13.5px;margin-top:2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .arrow{color:var(--faint);font-size:12px}
+  .conf{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.02em}
+  .cf-high{background:var(--ok-bg);color:var(--ok)} .cf-med{background:var(--warn-bg);color:var(--warn)} .cf-low{background:var(--bad-bg);color:var(--bad)}
+  .exprice{text-align:end;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums;flex:none}
+  .fix{margin-top:8px;display:flex;align-items:center;gap:8px}
+  .fix select{flex:1;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-family:inherit;font-size:13px;background:#fff;color:var(--txt)}
+  .fix select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+  .fix .note{font-size:11.5px;color:var(--warn);font-weight:600}
+  .totals{margin-top:14px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px}
+  .trow{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+  .trow.t{border-top:1px solid var(--line);margin-top:5px;padding-top:9px;font-weight:800;font-size:15px}
+  .credit{display:flex;gap:11px;align-items:flex-start;border-radius:12px;padding:12px 14px;font-size:12.5px;margin-top:14px}
+  .credit svg{width:17px;height:17px;flex:none;margin-top:1px}
+  .credit.ok{background:var(--ok-bg);color:#0f7a38;border:1px solid #cdeccf}
+  .credit.bad{background:var(--bad-bg);color:#b3231f;border:1px solid #f5ccc9}
+  .credit b{display:block}
+  .actions{display:flex;gap:10px;padding:16px 20px}
+  .btn{border:0;border-radius:11px;padding:12px 16px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn svg{width:16px;height:16px}
+  .btn.primary{background:var(--brand);color:#fff;flex:1}
+  .btn.primary:disabled{background:#cbd0d8;cursor:not-allowed}
+  .btn.ghost{background:var(--line-2);color:var(--ink-2)}
+  .drafted{display:flex;align-items:center;gap:10px;background:var(--ok-bg);border:1px solid #cdeccf;color:#0f7a38;border-radius:12px;padding:13px 15px;margin:16px 20px;font-size:13.5px;font-weight:700}
+  .drafted svg{width:18px;height:18px}
+  .toast{position:fixed;inset-block-end:26px;inset-inline:0;margin-inline:auto;width:max-content;max-width:90vw;background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:var(--sh-lg);z-index:70;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;display:flex;align-items:center;gap:9px}
+  .toast.show{opacity:1;transform:none}.toast svg{width:16px;height:16px}
+  .backbtn{display:none}
+  @media(max-width:900px){.work{grid-template-columns:1fr}.inbox{max-height:none}}
+  @media(max-width:760px){
+    .work{gap:0;padding:14px}
+    .detail{display:none}
+    .work.has-sel > .card:not(.detail){display:none}
+    .work.has-sel .detail{display:block}
+    .backbtn{display:grid;place-items:center;border:1px solid var(--line);background:#fff;border-radius:9px;width:36px;height:36px;cursor:pointer;font-family:inherit;font-size:18px;color:var(--ink-2);flex:none}
+  }
+  @media(max-width:560px){.top{padding:11px 14px;gap:9px}.top .badge,.top .adminlink{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><span class="mark" id="bmark"></span><div><div class="nm">Treadline</div><div class="sub" id="subT"></div></div></div>
+  <span class="badge" id="demoTag"></span>
+  <div class="grow"></div>
+  <a class="adminlink" href="index.html" id="homeLink"></a>
+  <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
+</div>
+
+<div class="work">
+  <div class="card">
+    <div class="ch"><h2 data-i18n="inbox"></h2><span class="count" id="inboxCount"></span></div>
+    <div class="inbox" id="inbox"></div>
+  </div>
+  <div class="card detail" id="detail"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,k){const n=document.createElement(t);if(a)for(const x in a){const v=a[x];if(v==null)continue;
+  if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x==="style")n.setAttribute("style",v);
+  else if(x.slice(0,2)==="on"&&typeof v==="function")n.addEventListener(x.slice(2),v);else n.setAttribute(x,v);}
+  if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c==null||c===false)return;n.appendChild(typeof c==="object"?c:document.createTextNode(String(c)));});return n;}
+function sv(t,a,k){const n=document.createElementNS(NS,t);if(a)for(const x in a){if(a[x]!=null)n.setAttribute(x,a[x]);}if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c)n.appendChild(c);});return n;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function icon(name){const P={
+  bag:["M6 7h12l1 13H5z","M9 7a3 3 0 016 0"],
+  wa:["M21 11.5a8.5 8.5 0 01-12.6 7.5L3 21l2-5.4A8.5 8.5 0 1121 11.5z"],
+  file:["M7 3h8l4 4v14H7z","M15 3v4h4"], sheet:["M4 4h16v16H4z","M4 10h16M4 15h16M10 4v16"],
+  mic:["M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3z","M5 11a7 7 0 0014 0","M12 18v3"],
+  play:["M7 4l13 8-13 8z"], ai:["M12 3l1.7 4.1L18 9l-4.3 1.9L12 15l-1.7-4.1L6 9l4.3-1.9z","M18.5 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"],
+  check:["M20 6 9 17l-5-5"], x:["M18 6 6 18M6 6l12 12"], send:["M22 2 11 13","M22 2 15 22l-4-9-9-4z"],
+  lock:["M6 11V8a6 6 0 0112 0v3","M5 11h14v9a1 1 0 01-1 1H6a1 1 0 01-1-1z"],
+  inboxic:["M4 13h4l2 3h4l2-3h4","M5 13 7 4h10l2 9v6a1 1 0 01-1 1H6a1 1 0 01-1-1z"]
+};const g=sv("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.8","stroke-linecap":"round","stroke-linejoin":"round"});(P[name]||[]).forEach(d=>g.appendChild(sv("path",{d})));return g;}
+
+// catalog (consistent with the ordering app)
+const products=[
+  {id:"p1", brand:"Dunlop", pat:"SP Sport LM705", size:"205/55R16", price:24.500},
+  {id:"p2", brand:"Dunlop", pat:"SP Sport LM705", size:"215/60R16", price:27.000},
+  {id:"p3", brand:"Dunlop", pat:"Grandtrek AT5", size:"265/70R16", price:39.500},
+  {id:"p4", brand:"Dunlop", pat:"Grandtrek PT3", size:"235/65R17", price:42.000},
+  {id:"p5", brand:"Dunlop", pat:"Enasave EC300", size:"195/65R15", price:21.000},
+  {id:"p6", brand:"Dunlop", pat:"SP Sport Maxx", size:"225/45R17", price:33.500},
+  {id:"p7", brand:"Dunlop", pat:"SP LT5", size:"285/75R16", price:55.000},
+];
+const prod=(id)=>products.find(p=>p.id===id);
+const pname=(p)=>p.brand+" "+p.pat+" "+p.size;
+const dealers={
+  alm:{en:"Al Maha Auto Garage", ar:"كراج المها للسيارات", brEn:"Ghala", brAr:"غلا", avail:750, blocked:false},
+  sal:{en:"Salalah Fleet Services", ar:"خدمات أسطول صلالة", brEn:"Salalah", brAr:"صلالة", avail:2700, blocked:false},
+  rus:{en:"Rustaq Garage", ar:"كراج الرستاق", brEn:"Rustaq", brAr:"الرستاق", avail:2850, blocked:false},
+  mtf:{en:"Muscat Fleet Co.", ar:"شركة أسطول مسقط", brEn:"Wadi Kabir", brAr:"وادي كبير", avail:9000, blocked:false},
+  bar:{en:"Barka Motors", ar:"بركاء موتورز", brEn:"Barka", brAr:"بركاء", avail:0, blocked:true},
+};
+
+let inbox=[
+  {id:"in1", chan:"wa", dealer:"alm", time:"09:12", msgLang:"en", status:"new",
+   raw:"Morning 👋 please send 8x 205/55R16 Dunlop SP Sport and 4x Grandtrek 265/70 R16 to Ghala branch. Thanks",
+   lines:[{q:8, raw:"8x 205/55R16 Dunlop SP Sport", m:"p1", c:"high"},{q:4, raw:"4x Grandtrek 265/70 R16", m:"p3", c:"high"}]},
+  {id:"in2", chan:"wa", dealer:"sal", time:"09:40", msgLang:"ar", status:"new",
+   raw:"السلام عليكم، أبغى ١٠ حبات ٢١٥/٦٠ سبورت و ٦ حبات إيناسيف ١٩٥/٦٥. شكراً",
+   lines:[{q:10, raw:"١٠ حبات ٢١٥/٦٠ سبورت", m:"p2", c:"high"},{q:6, raw:"٦ حبات إيناسيف ١٩٥/٦٥", m:"p5", c:"high"}]},
+  {id:"in3", chan:"voice", dealer:"rus", time:"10:05", msgLang:"en", status:"new", dur:"0:14",
+   raw:"send me twenty sport maxx two two five forty five seventeen and ten enasave",
+   lines:[{q:20, raw:"twenty sport maxx 225 45 17", m:"p6", c:"high"},{q:10, raw:"ten enasave", m:"p5", c:"med", alts:["p5","p1","p2"]}]},
+  {id:"in4", chan:"pdf", dealer:"mtf", time:"10:22", msgLang:"en", status:"review",
+   pdf:[["Dunlop SP Sport 215/60R16","12 pcs"],["Grandtrek PT3 235/65 R17","8 pcs"],["AT tyre 285/75 (LT)","6 pcs"]],
+   lines:[{q:12, raw:"Dunlop SP Sport 215/60R16", m:"p2", c:"high"},{q:8, raw:"Grandtrek PT3 235/65 R17", m:"p4", c:"high"},{q:6, raw:"AT tyre 285/75 (LT)", m:"p7", c:"med", alts:["p7","p3"]}]},
+  {id:"in5", chan:"wa", dealer:"bar", time:"10:48", msgLang:"en", status:"review",
+   raw:"need 6x Grandtrek PT3 235/65 urgently for a fleet job",
+   lines:[{q:6, raw:"6x Grandtrek PT3 235/65", m:"p4", c:"high"}]},
+];
+
+const TXT={
+ en:{sub:"AI Order Intake", demo:"Demo · sample data", home:"↗ All demos",
+  inbox:"Incoming orders", new:"New", review:"Review", drafted:"Drafted",
+  pickOne:"Select an order from the inbox", pickSub:"The AI reads the message, matches each line to a tyre, and drafts a sales order for you to confirm.",
+  channelWa:"WhatsApp", channelPdf:"PDF purchase order", channelVoice:"Voice note", channelExcel:"Excel",
+  original:"Original message", aiExtract:"AI-extracted order", parsing:"AI is reading the order…", transcript:"Auto-transcript",
+  read:"read", confirm:"Confirm the right match:", high:"High", med:"Check", low:"Low",
+  subtotal:"Subtotal", vat:"VAT (5%)", total:"Total",
+  creditOkT:"Within credit", creditOk:"{name} has {amt} credit available — safe to push.",
+  creditOverT:"Exceeds available credit", creditOver:"This order is over {name}'s available credit ({amt}). Needs approval before pushing.",
+  creditHoldT:"Dealer on credit hold", creditHold:"{name} has a bounced/overdue cheque — clear it before accepting new orders.",
+  push:"Push to Odoo (draft)", reject:"Reject", rejected:"Order rejected",
+  draftedMsg:"Draft sales order {so} created in Odoo — awaiting desk confirmation.", pushed:"Draft {so} pushed to Odoo",
+  ovrBtn:"Override credit hold & push", ovrOn:"Credit hold overridden — you can push now", ovrTitle:"Credit hold overridden", ovrMsg:"Manager-approved — this order can be pushed to Odoo despite the credit hold.", ovrTag:"credit override"},
+ ar:{sub:"استقبال الطلبات بالذكاء الاصطناعي", demo:"عرض تجريبي · بيانات", home:"↗ كل العروض",
+  inbox:"الطلبات الواردة", new:"جديد", review:"مراجعة", drafted:"مُسوّدة",
+  pickOne:"اختر طلباً من الوارد", pickSub:"يقرأ الذكاء الاصطناعي الرسالة، ويطابق كل سطر بإطار، ويجهّز أمر بيع لتأكيده.",
+  channelWa:"واتساب", channelPdf:"أمر شراء PDF", channelVoice:"رسالة صوتية", channelExcel:"إكسل",
+  original:"الرسالة الأصلية", aiExtract:"الطلب المستخرَج", parsing:"يقرأ الذكاء الاصطناعي الطلب…", transcript:"تفريغ تلقائي",
+  read:"قرأ", confirm:"أكّد المطابقة الصحيحة:", high:"عالية", med:"تحقّق", low:"منخفضة",
+  subtotal:"المجموع الفرعي", vat:"ضريبة (٥٪)", total:"الإجمالي",
+  creditOkT:"ضمن حد الائتمان", creditOk:"لدى {name} ائتمان متاح {amt} — آمن للإرسال.",
+  creditOverT:"يتجاوز الائتمان المتاح", creditOver:"هذا الطلب يتجاوز ائتمان {name} المتاح ({amt}). يحتاج موافقة قبل الإرسال.",
+  creditHoldT:"الوكيل موقوف ائتمانياً", creditHold:"لدى {name} شيك مرتجع/متأخر — سوِّه قبل قبول طلبات جديدة.",
+  push:"إرسال إلى Odoo (مسودة)", reject:"رفض", rejected:"تم رفض الطلب",
+  draftedMsg:"تم إنشاء مسودة أمر بيع {so} في Odoo — بانتظار تأكيد المكتب.", pushed:"تم إرسال المسودة {so} إلى Odoo",
+  ovrBtn:"تجاوز إيقاف الائتمان وإرسال", ovrOn:"تم تجاوز إيقاف الائتمان — يمكنك الإرسال الآن", ovrTitle:"تم تجاوز إيقاف الائتمان", ovrMsg:"بموافقة المدير — يمكن إرسال هذا الطلب إلى Odoo رغم إيقاف الائتمان.", ovrTag:"تجاوز ائتماني"}
+};
+let lang="en", selId=null, parsing=false, soSeed=2090;
+const t=(k)=>TXT[lang][k]||k;
+const fmt=(n)=>"OMR "+n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:3,maximumFractionDigits:3});
+const dn=(d)=>dealers[d][lang];
+const dbr=(d)=>lang==="ar"?dealers[d].brAr:dealers[d].brEn;
+const chanIcon={wa:"wa",pdf:"file",voice:"mic",excel:"sheet"};
+const chanName={wa:"channelWa",pdf:"channelPdf",voice:"channelVoice",excel:"channelExcel"};
+const orderTotal=(it)=>it.lines.reduce((s,l)=>s+(l.m?prod(l.m).price*l.q:0),0);
+const allMatched=(it)=>it.lines.every(l=>l.m);
+function setLang(l){lang=l;render();}
+function backToInbox(){selId=null;render();}
+function toast(m){const tn=document.getElementById("toast");clear(tn);tn.appendChild(icon("check"));tn.appendChild(document.createTextNode(m));tn.classList.add("show");clearTimeout(window._t);window._t=setTimeout(()=>tn.classList.remove("show"),2800);}
+function select(id){selId=id;const it=inbox.find(x=>x.id===id);if(it.status==="new"){parsing=true;render();clearTimeout(window._p);window._p=setTimeout(()=>{parsing=false;render();},950);}else{parsing=false;render();}}
+function fixMatch(it,idx,pid){it.lines[idx].m=pid;it.lines[idx].c="high";render();}
+function pushOrder(it){if(it.status==="drafted")return;const d=dealers[it.dealer];if(!allMatched(it))return;if(!it.creditOverride&&(d.blocked||orderTotal(it)*1.05>d.avail))return;const so="SO-"+(soSeed++);it.status="drafted";it.so=so;render();toast(t("pushed").replace("{so}",so));}
+function rejectOrder(it){inbox=inbox.filter(x=>x.id!==it.id);selId=null;render();toast(t("rejected"));}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.getElementById("enBtn").classList.toggle("on",lang==="en");
+  document.getElementById("arBtn").classList.toggle("on",lang==="ar");
+  const bm=document.getElementById("bmark");clear(bm);const bi=icon("bag");bi.style.color="#fff";bm.appendChild(bi);
+  document.getElementById("subT").textContent=t("sub");
+  document.getElementById("demoTag").textContent=t("demo");
+  document.getElementById("homeLink").textContent=t("home");
+  document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=t(n.dataset.i18n));
+  document.querySelector(".work").classList.toggle("has-sel",!!selId);
+
+  // inbox
+  document.getElementById("inboxCount").textContent=inbox.length.toLocaleString(lang==="ar"?"ar-OM":"en-US");
+  const ib=document.getElementById("inbox");clear(ib);
+  inbox.forEach(it=>{
+    const stc=it.status==="new"?"st-new":it.status==="review"?"st-rev":"st-draft";
+    ib.appendChild(el("div",{class:"item"+(it.id===selId?" sel":""),onclick:()=>select(it.id)},[
+      el("div",{class:"chan "+it.chan},icon(chanIcon[it.chan])),
+      el("div",{class:"mid"},[
+        el("div",{class:"nm",text:dn(it.dealer)}),
+        el("div",{class:"snip",text:it.chan==="pdf"?(t("channelPdf")+" · "+it.pdf.length+" lines"):(it.raw||"")}),
+        el("div",{class:"meta"},[el("span",{class:"st "+stc,text:t(it.status)}),el("span",{class:"time",text:it.time})])
+      ])
+    ]));
+  });
+
+  // detail
+  const dt=document.getElementById("detail");clear(dt);
+  if(!selId){dt.appendChild(el("div",{class:"empty"},[el("div",{class:"ei"},icon("inboxic")),el("div",{style:"font-weight:800;color:var(--ink-2);font-size:15px;margin-bottom:5px",text:t("pickOne")}),el("div",{style:"max-width:340px;line-height:1.6",text:t("pickSub")})]));return;}
+  const it=inbox.find(x=>x.id===selId), d=dealers[it.dealer];
+
+  dt.appendChild(el("div",{class:"dhead"},[
+    el("button",{class:"backbtn",onclick:backToInbox,text:"←"}),
+    el("div",{class:"chan "+it.chan},icon(chanIcon[it.chan])),
+    el("div",{},[el("div",{class:"nm",text:dn(it.dealer)}),el("div",{class:"mt"},[t(chanName[it.chan])+" · "+dbr(it.dealer)+" · "+it.time])]),
+    el("span",{class:"pill "+(d.blocked?"bad":"ok"),text:d.blocked?t("creditHoldT"):fmt(d.avail)})
+  ]));
+
+  // original message
+  const orig=el("div",{class:"sec"},[el("div",{class:"lbl"},[icon(chanIcon[it.chan]),t("original")])]);
+  if(it.chan==="wa"){orig.appendChild(el("div",{class:"wabub"},[it.raw,el("div",{class:"watime",text:it.time+" ✓✓"})]));}
+  else if(it.chan==="voice"){
+    orig.appendChild(el("div",{class:"voice"},[el("div",{class:"play"},icon("play")),el("div",{class:"wave"},[2,5,9,14,11,17,8,13,6,16,10,7,12,5,9,4,8].map(h=>el("i",{style:"height:"+h+"px"}))),el("span",{style:"font-size:11px;color:var(--muted)",text:it.dur})]));
+    orig.appendChild(el("div",{class:"transcript"},[el("b",{text:t("transcript")}),document.createTextNode("“"+it.raw+"”")]));
+  } else if(it.chan==="pdf"){
+    const doc=el("div",{class:"pdf"},[el("div",{class:"pt"},[icon("file"),"PURCHASE ORDER · "+dn(it.dealer)])]);
+    it.pdf.forEach(r=>doc.appendChild(el("div",{class:"pr"},[el("span",{text:r[0]}),el("span",{style:"font-weight:700",text:r[1]})])));
+    orig.appendChild(doc);
+  }
+  dt.appendChild(orig);
+
+  // AI extraction
+  const ex=el("div",{class:"sec"},[el("div",{class:"lbl"},[icon("ai"),t("aiExtract")])]);
+  if(parsing){ ex.appendChild(el("div",{class:"parsing"},[el("div",{class:"spin"}),el("span",{text:t("parsing")})])); }
+  else {
+    it.lines.forEach((l,idx)=>{
+      const p=l.m?prod(l.m):null;
+      const cf=l.c==="high"?"cf-high":l.c==="med"?"cf-med":"cf-low";
+      const row=el("div",{class:"exline"},[
+        el("div",{class:"exq num",text:l.q.toLocaleString(lang==="ar"?"ar-OM":"en-US")+"×"}),
+        el("div",{class:"exmid"},[
+          el("div",{class:"exraw"},[t("read")+": ",el("b",{text:"“"+l.raw+"”"})]),
+          el("div",{class:"exmatch"},[p?pname(p):"—",el("span",{class:"arrow"},"→"),el("span",{class:"conf "+cf,text:t(l.c)})])
+        ]),
+        el("div",{class:"exprice",text:p?fmt(p.price*l.q):"—"})
+      ]);
+      ex.appendChild(row);
+      if(l.c!=="high"){
+        const sel=el("select",{onchange:(e)=>fixMatch(it,idx,e.target.value)}, products.map(pp=>el("option",{value:pp.id,selected:pp.id===l.m?"true":null,text:pname(pp)})));
+        ex.appendChild(el("div",{class:"fix"},[el("span",{class:"note",text:t("confirm")}),sel]));
+      }
+    });
+    const sub=orderTotal(it), vat=sub*0.05, total=sub+vat;
+    ex.appendChild(el("div",{class:"totals"},[
+      el("div",{class:"trow"},[el("span",{text:t("subtotal")}),el("span",{class:"num",text:fmt(sub)})]),
+      el("div",{class:"trow"},[el("span",{text:t("vat")}),el("span",{class:"num",text:fmt(vat)})]),
+      el("div",{class:"trow t"},[el("span",{text:t("total")}),el("span",{class:"num",text:fmt(total)})])
+    ]));
+    // credit check (with manual override)
+    const over=!d.blocked&&total>d.avail;
+    const creditBad=d.blocked||over;
+    if(creditBad && !it.creditOverride){
+      ex.appendChild(el("div",{class:"credit bad"},[icon("lock"),el("div",{style:"flex:1"},[
+        el("b",{text:d.blocked?t("creditHoldT"):t("creditOverT")}),
+        document.createTextNode(d.blocked?t("creditHold").replace("{name}",dn(it.dealer)):t("creditOver").replace("{name}",dn(it.dealer)).replace("{amt}",fmt(d.avail))),
+        el("button",{class:"btn ghost",style:"margin-top:11px;padding:8px 12px",onclick:()=>{it.creditOverride=true;render();toast(t("ovrOn"));}},[icon("lock"),el("span",{text:t("ovrBtn")})])
+      ])]));
+    } else if(it.creditOverride){
+      ex.appendChild(el("div",{class:"credit",style:"background:var(--info-bg);border:1px solid #dfe1fb;color:var(--brand-ink)"},[icon("check"),el("div",{style:"flex:1"},[el("b",{text:t("ovrTitle")}),document.createTextNode(t("ovrMsg"))])]));
+    } else {
+      ex.appendChild(el("div",{class:"credit ok"},[icon("check"),el("div",{},[el("b",{text:t("creditOkT")}),document.createTextNode(t("creditOk").replace("{name}",dn(it.dealer)).replace("{amt}",fmt(d.avail)))])]));
+    }
+  }
+  dt.appendChild(ex);
+
+  // actions / drafted state
+  if(it.status==="drafted"){
+    dt.appendChild(el("div",{class:"drafted"},[icon("check"),el("span",{text:t("draftedMsg").replace("{so}",it.so)+(it.creditOverride?" ("+t("ovrTag")+")":"")})]));
+  } else if(!parsing){
+    const creditOk = it.creditOverride || (!d.blocked && (orderTotal(it)*1.05)<=d.avail);
+    const canPush = creditOk && allMatched(it);
+    dt.appendChild(el("div",{class:"actions"},[
+      el("button",{class:"btn primary",disabled:canPush?null:"true",onclick:()=>pushOrder(it)},[canPush?icon("send"):icon("lock"),el("span",{text:t("push")})]),
+      el("button",{class:"btn ghost",onclick:()=>rejectOrder(it)},[icon("x"),el("span",{text:t("reject")})])
+    ]));
+  }
+}
+render();
+</script>
+</body>
+</html>

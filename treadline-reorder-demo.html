@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treadline — Re-order Planner (Demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d0f14; --ink-2:#1f2430; --txt:#14171d; --muted:#666d79; --faint:#9aa0ab;
+    --line:#ecedf1; --line-2:#f4f5f7; --bg:#f7f8fa; --card:#ffffff;
+    --brand:#4f46e5; --brand-2:#6366f1; --brand-ink:#4338ca; --brand-bg:#eef0fe;
+    --ok:#15a34a; --ok-bg:#e9f6ee; --warn:#b7791f; --warn-bg:#fbf3e0;
+    --bad:#e0413f; --bad-bg:#fdecec; --info:#4f46e5; --info-bg:#eef0fe;
+    --sh-sm:0 1px 1.5px rgba(16,18,24,.04);
+    --sh:0 1px 2px rgba(16,18,24,.04),0 1px 3px rgba(16,18,24,.03);
+    --sh-lg:0 18px 48px -16px rgba(16,18,24,.22);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.45;letter-spacing:-.005em}
+  .num{font-variant-numeric:tabular-nums}
+  .top{display:flex;align-items:center;gap:13px;padding:15px 24px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:32px;height:32px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:#fff}
+  .brand .mark svg{width:17px;height:17px}
+  .brand .nm{font-weight:800;font-size:17px;letter-spacing:-.02em}
+  .brand .sub{font-size:12px;color:var(--muted)}
+  .badge{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--warn-bg);color:var(--warn);padding:4px 9px;border-radius:999px;border:1px solid #f3e3bf}
+  .grow{flex:1}
+  .adminlink{font-size:12.5px;color:var(--brand-ink);font-weight:700;text-decoration:none;border:1px solid #e2e4fb;background:#f4f5fe;border-radius:10px;padding:8px 12px}
+  .toggle{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .toggle button{border:0;background:#fff;padding:8px 12px;font-weight:700;cursor:pointer;color:var(--muted);font-size:13px;font-family:inherit}
+  .toggle button.on{background:var(--ink);color:#fff}
+  .content{max-width:1180px;margin:0 auto;padding:22px 24px 56px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
+  .kpi .row1{display:flex;align-items:center;gap:9px}
+  .kpi .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+  .kpi .ic svg{width:16px;height:16px}
+  .ic.red{background:var(--bad-bg);color:var(--bad)} .ic.amber{background:var(--warn-bg);color:var(--warn)} .ic.indigo{background:var(--brand-bg);color:var(--brand)} .ic.green{background:var(--ok-bg);color:var(--ok)}
+  .kpi .label{color:var(--muted);font-size:12.5px;font-weight:600}
+  .kpi .val{font-size:21px;font-weight:800;margin-top:11px;letter-spacing:-.03em;white-space:nowrap}
+  .kpi .sub{font-size:12px;color:var(--faint);margin-top:3px;font-weight:500}
+  .kpi.bad .val{color:var(--bad)} .kpi.amber .val{color:var(--warn)}
+  .season{display:flex;align-items:center;gap:11px;background:var(--warn-bg);border:1px solid #f3e3bf;color:#8a5a12;border-radius:12px;padding:12px 15px;font-size:13px;margin-bottom:16px}
+  .season svg{width:18px;height:18px;flex:none;color:var(--warn)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .ch{display:flex;align-items:center;gap:9px;padding:15px 18px;border-bottom:1px solid var(--line-2)}
+  .ch h2{font-size:14px;margin:0;font-weight:700}
+  .ch .count{margin-inline-start:auto;font-size:11px;color:var(--muted);font-weight:700;background:var(--line-2);padding:3px 9px;border-radius:999px}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:start;padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+  th{color:var(--faint);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+  th.r,td.r{text-align:end}
+  tbody tr{cursor:pointer;transition:background .12s}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#fafbfc}
+  td.num{font-weight:700}
+  .who2{display:flex;align-items:center;gap:11px}
+  .av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--ink)}
+  .av svg{width:20px;height:20px;color:#fff}
+  .who2 .nm{font-weight:700} .who2 .br{font-size:11.5px;color:var(--faint);margin-top:1px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .c-now{background:var(--bad-bg);color:var(--bad)} .c-soon{background:var(--warn-bg);color:var(--warn)} .c-ok{background:var(--ok-bg);color:var(--ok)} .c-over{background:var(--brand-bg);color:var(--brand-ink)}
+  .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .stepper button{border:0;background:#fff;width:30px;height:32px;cursor:pointer;font-family:inherit;color:var(--ink-2);display:grid;place-items:center}
+  .stepper button:disabled{opacity:.35;cursor:not-allowed}
+  .stepper svg{width:13px;height:13px}
+  .stepper .q{min-width:42px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+  .pobar{display:flex;align-items:center;gap:14px;padding:16px 18px;border-top:1px solid var(--line-2);background:#fcfcfd}
+  .pobar .info{font-size:13px;color:var(--muted)} .pobar .info b{color:var(--txt);font-weight:800}
+  .btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+  .btn svg{width:16px;height:16px}
+  .btn.primary{background:var(--brand);color:#fff;margin-inline-start:auto}
+  .btn.primary:disabled{background:#cbd0d8;cursor:not-allowed}
+  /* drawer */
+  .scrim{position:fixed;inset:0;background:rgba(11,18,32,.5);opacity:0;pointer-events:none;transition:.22s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;inset-inline-end:0;height:100%;width:440px;max-width:93vw;background:#fff;z-index:50;transform:translateX(110%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-lg);overflow-y:auto}
+  [dir=rtl] .drawer{transform:translateX(-110%)}
+  .drawer.show{transform:translateX(0)}
+  .dh{padding:20px 22px 16px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:13px}
+  .dh .x{margin-inline-start:auto;border:0;background:var(--line-2);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:15px;color:var(--ink-2);font-family:inherit}
+  .dh h3{margin:0 0 4px;font-size:17px;font-weight:800} .dh .m{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:8px}
+  .dsec{padding:16px 22px;border-bottom:1px solid var(--line-2)}
+  .dsec .lbl{font-size:11px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+  .brow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+  .brow:last-child{border-bottom:0} .brow .k{color:var(--muted)} .brow b{font-weight:700}
+  .brow.hi b{color:var(--bad)}
+  .recbox{background:var(--brand-bg);border:1px solid #dfe1fb;border-radius:12px;padding:14px;margin-top:4px}
+  .recbox .rt{font-size:12px;color:var(--brand-ink);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+  .recbox .rv{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+  .recbox .rq{font-size:22px;font-weight:800}
+  .spark{display:block}
+  .toast{position:fixed;inset-block-end:26px;inset-inline:0;margin-inline:auto;width:max-content;max-width:90vw;background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;box-shadow:var(--sh-lg);z-index:70;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;display:flex;align-items:center;gap:9px}
+  .toast.show{opacity:1;transform:none}.toast svg{width:16px;height:16px}
+  .foot{color:var(--faint);font-size:11.5px;text-align:center;margin-top:24px;line-height:1.7}
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){
+    .content{padding:18px 14px 50px}
+    table thead{display:none}
+    table tbody tr{display:block;border:1px solid var(--line);border-radius:12px;margin:10px 14px;padding:2px 0;box-shadow:var(--sh-sm)}
+    table tbody tr td{display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;padding:9px 14px;white-space:normal;text-align:start}
+    table tbody tr td::before{content:attr(data-label);color:var(--faint);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;flex:none}
+    table tbody tr td:first-child{padding:12px 14px 6px}
+    table tbody tr td:first-child::before{display:none}
+    .drawer{width:100%;max-width:100%}
+    .pobar{flex-direction:column;align-items:stretch;gap:11px}
+    .btn.primary{margin-inline-start:0;justify-content:center}
+  }
+  @media(max-width:560px){.top{padding:11px 14px;gap:9px}.top .badge,.top .adminlink{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><span class="mark" id="bmark"></span><div><div class="nm">Treadline</div><div class="sub" id="subT"></div></div></div>
+  <span class="badge" id="demoTag"></span>
+  <div class="grow"></div>
+  <a class="adminlink" href="index.html" id="homeLink"></a>
+  <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
+</div>
+
+<div class="content">
+  <div class="kpis" id="kpis"></div>
+  <div class="season" id="season"></div>
+  <div class="card">
+    <div class="ch"><h2 data-i18n="planner"></h2><span class="count" id="prodCount"></span></div>
+    <div style="overflow-x:auto">
+      <table id="tbl"><thead><tr>
+        <th data-i18n="product"></th>
+        <th class="r" data-i18n="stock"></th>
+        <th data-i18n="velocity"></th>
+        <th class="r" data-i18n="cover"></th>
+        <th data-i18n="status"></th>
+        <th class="r" data-i18n="orderQty"></th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+    <div class="pobar" id="pobar"></div>
+  </div>
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="toast" id="toast"></div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,k){const n=document.createElement(t);if(a)for(const x in a){const v=a[x];if(v==null)continue;
+  if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x==="style")n.setAttribute("style",v);
+  else if(x.slice(0,2)==="on"&&typeof v==="function")n.addEventListener(x.slice(2),v);else n.setAttribute(x,v);}
+  if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c==null||c===false)return;n.appendChild(typeof c==="object"?c:document.createTextNode(String(c)));});return n;}
+function sv(t,a,k){const n=document.createElementNS(NS,t);if(a)for(const x in a){if(a[x]!=null)n.setAttribute(x,a[x]);}if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c)n.appendChild(c);});return n;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function icon(name){const P={
+  bag:["M6 7h12l1 13H5z","M9 7a3 3 0 016 0"],
+  box:["M3 8 12 3l9 5v8l-9 5-9-5z","M3 8l9 5 9-5M12 13v8"],
+  alert:["M12 9v4M12 17h.01","M10.3 4.3 2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"],
+  trend:["M3 17l6-6 4 4 7-7","M14 8h6v6"],
+  sun:["M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4","M12 17a5 5 0 100-10 5 5 0 000 10z"],
+  truck:["M3 6h11v9H3z","M14 9h4l3 3v3h-7z","M7 18a2 2 0 100-4 2 2 0 000 4zM17 18a2 2 0 100-4 2 2 0 000 4z"],
+  cal:["M4 5h16v16H4z","M4 9h16M9 3v4M15 3v4"],
+  file:["M7 3h8l4 4v14H7z","M15 3v4h4"], plus:["M12 5v14M5 12h14"], minus:["M5 12h14"], check:["M20 6 9 17l-5-5"], coins:["M8 8a6 3 0 1012 0 6 3 0 10-12 0z","M20 8v5c0 1.7-2.7 3-6 3M8 8v9c0 1.7 2.7 3 6 3","M2 6a6 3 0 1012 0 6 3 0 10-12 0zM2 6v10c0 1.7 2.7 3 6 3"]
+};const g=sv("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.8","stroke-linecap":"round","stroke-linejoin":"round"});(P[name]||[]).forEach(d=>g.appendChild(sv("path",{d})));return g;}
+function tyre(){return sv("svg",{viewBox:"0 0 24 24",fill:"none"},[sv("circle",{cx:12,cy:12,r:9.5,stroke:"#fff","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:5,stroke:"#fff","stroke-width":"1.4","opacity":".7"}),sv("circle",{cx:12,cy:12,r:1.8,fill:"#fff"})]);}
+function spark(vals,color,w,h){w=w||120;h=h||34;const mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
+  const pts=vals.map((v,i)=>[(i/(vals.length-1))*w,h-3-((v-mn)/rg)*(h-6)]);
+  const d="M"+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L");
+  const id="g"+color.replace(/\W/g,"")+w;
+  return sv("svg",{class:"spark",width:w,height:h,viewBox:`0 0 ${w} ${h}`},[
+    sv("defs",null,[sv("linearGradient",{id,x1:"0",y1:"0",x2:"0",y2:"1"},[sv("stop",{offset:"0",["stop-color"]:color,["stop-opacity"]:".2"}),sv("stop",{offset:"1",["stop-color"]:color,["stop-opacity"]:"0"})])]),
+    sv("path",{d:d+` L${w} ${h} L0 ${h} Z`,fill:`url(#${id})`}),
+    sv("path",{d,fill:"none",stroke:color,["stroke-width"]:"2",["stroke-linecap"]:"round",["stroke-linejoin"]:"round"})
+  ]);}
+
+// model params
+const TODAY=new Date(2026,5,29);
+const SEASON=1.15, LEAD=5, SAFETY=2, TARGET=4, OVERSTOCK=20;
+const products=[
+  {id:"p1", brand:"Dunlop", pat:"SP Sport LM705", size:"205/55R16", price:24.500, stock:28, hist:[7,8,9,10,9,11,10,12]},
+  {id:"p2", brand:"Dunlop", pat:"SP Sport LM705", size:"215/60R16", price:27.000, stock:60, hist:[5,4,6,5,5,4,6,5]},
+  {id:"p3", brand:"Dunlop", pat:"Grandtrek AT5", size:"265/70R16", price:39.500, stock:12, hist:[3,4,5,4,4,3,5,4]},
+  {id:"p4", brand:"Dunlop", pat:"Grandtrek PT3", size:"235/65R17", price:42.000, stock:40, hist:[3,2,3,4,3,3,2,4]},
+  {id:"p5", brand:"Dunlop", pat:"Enasave EC300", size:"195/65R15", price:21.000, stock:80, hist:[10,12,11,13,12,11,10,13]},
+  {id:"p6", brand:"Dunlop", pat:"SP Sport Maxx", size:"225/45R17", price:33.500, stock:8, hist:[2,1,2,3,2,2,1,3]},
+  {id:"p7", brand:"Dunlop", pat:"SP LT5", size:"285/75R16", price:55.000, stock:55, hist:[2,1,2,1,2,1,2,1]},
+];
+const avg=(p)=>p.hist.reduce((a,b)=>a+b,0)/p.hist.length;
+const demand=(p)=>avg(p)*SEASON;                 // seasonally-adjusted weekly demand
+const cover=(p)=>p.stock/demand(p);              // weeks of stock left
+const reorderPt=(p)=>demand(p)*(LEAD+SAFETY);
+const leadDemand=(p)=>demand(p)*LEAD;
+function status(p){ if(cover(p)>OVERSTOCK) return "over"; if(p.stock<=leadDemand(p)) return "now"; if(p.stock<=reorderPt(p)) return "soon"; return "ok"; }
+function suggested(p){ const s=status(p); if(s==="ok"||s==="over") return 0; return Math.max(0, Math.round(demand(p)*(LEAD+SAFETY+TARGET) - p.stock)); }
+function deadCash(p){ return status(p)==="over" ? Math.max(0,(p.stock-reorderPt(p)))*p.price : 0; }
+function stockoutDate(p){ const dt=new Date(TODAY.getTime()+cover(p)*7*86400000); return dt; }
+function orderByDate(p){ const wk=Math.max(0,cover(p)-LEAD); return new Date(TODAY.getTime()+wk*7*86400000); }
+
+let lang="en", selId=null, qty={};
+products.forEach(p=>qty[p.id]=suggested(p));
+const t=(k)=>TXT[lang][k]||k;
+const fmt=(n)=>"OMR "+n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:3,maximumFractionDigits:3});
+const fmt0=(n)=>Math.round(n).toLocaleString(lang==="ar"?"ar-OM":"en-US");
+const fmt1=(n)=>n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pname=(p)=>p.brand+" "+p.pat;
+const fdate=(d)=>d.toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{day:"2-digit",month:"short",year:"numeric"});
+const stChip={now:"chip c-now",soon:"chip c-soon",ok:"chip c-ok",over:"chip c-over"};
+
+const TXT={
+ en:{sub:"Re-order Planner", demo:"Demo · sample data", home:"↗ All demos",
+  planner:"Replenishment plan", product:"Tyre", stock:"In stock", velocity:"Sales / week (8 wks)", cover:"Cover", status:"Status", orderQty:"Order qty",
+  kNow:"Order now", kNowSub:"won't last the import lead time", kSoon:"Order soon", kSoonSub:"below reorder point",
+  kDead:"Cash in dead stock", kDeadSub:"overstocked lines", kPO:"Suggested PO", kPOSub:"{n} lines to order",
+  season:"Summer demand uplift applied (+15%) — tyre wear peaks in Oman's heat (Jun–Sep).",
+  now:"Order now", soon:"Order soon", ok:"Healthy", over:"Overstock", wk:"wk",
+  createPO:"Create draft purchase order", poInfo:"{n} lines · {amt}", poEmpty:"Adjust quantities to build a PO",
+  poDone:"Draft purchase order {po} created in Odoo",
+  forecast:"Forecast", history:"Weekly sales (last 8 weeks)", avgWk:"Avg weekly sales", uplift:"Summer uplift", adjDemand:"Adjusted demand", lead:"Import lead time", safety:"Safety stock", rop:"Reorder point", curStock:"Current stock", weeksCover:"Weeks of cover", stockout:"Projected stock-out", orderBy:"Order by", recommend:"Recommended order", weeks:"weeks", units:"units", unitsWk:"units/wk", editable:"adjust before ordering"},
+ ar:{sub:"مخطط إعادة الطلب", demo:"عرض تجريبي · بيانات", home:"↗ كل العروض",
+  planner:"خطة التزويد", product:"الإطار", stock:"المخزون", velocity:"المبيعات / أسبوع (٨ أسابيع)", cover:"التغطية", status:"الحالة", orderQty:"كمية الطلب",
+  kNow:"اطلب الآن", kNowSub:"لن يكفي حتى وصول الشحنة", kSoon:"اطلب قريباً", kSoonSub:"تحت نقطة إعادة الطلب",
+  kDead:"نقد في مخزون راكد", kDeadSub:"أصناف فائضة", kPO:"أمر شراء مقترح", kPOSub:"{n} أصناف للطلب",
+  season:"تم تطبيق زيادة الطلب الصيفي (+١٥٪) — تآكل الإطارات يبلغ ذروته في حرّ عُمان (يونيو–سبتمبر).",
+  now:"اطلب الآن", soon:"اطلب قريباً", ok:"جيد", over:"فائض", wk:"أسبوع",
+  createPO:"إنشاء مسودة أمر شراء", poInfo:"{n} أصناف · {amt}", poEmpty:"عدّل الكميات لإنشاء أمر شراء",
+  poDone:"تم إنشاء مسودة أمر الشراء {po} في Odoo",
+  forecast:"التوقّع", history:"المبيعات الأسبوعية (آخر ٨ أسابيع)", avgWk:"متوسط المبيعات الأسبوعية", uplift:"زيادة صيفية", adjDemand:"الطلب المعدّل", lead:"مدة استيراد الشحنة", safety:"مخزون أمان", rop:"نقطة إعادة الطلب", curStock:"المخزون الحالي", weeksCover:"أسابيع التغطية", stockout:"نفاد متوقّع", orderBy:"اطلب قبل", recommend:"الطلب الموصى به", weeks:"أسابيع", units:"وحدة", unitsWk:"وحدة/أسبوع", editable:"عدّل قبل الطلب"}
+};
+
+function setLang(l){lang=l;render();}
+function toast(m){const tn=document.getElementById("toast");clear(tn);tn.appendChild(icon("check"));tn.appendChild(document.createTextNode(m));tn.classList.add("show");clearTimeout(window._t);window._t=setTimeout(()=>tn.classList.remove("show"),2800);}
+function setQty(id,v){const p=products.find(x=>x.id===id);qty[id]=Math.max(0,v);render();if(selId===id)openDetail(id);}
+function poLines(){return products.filter(p=>qty[p.id]>0);}
+function poValue(){return poLines().reduce((s,p)=>s+qty[p.id]*p.price,0);}
+function createPO(){if(!poLines().length)return;const po="PO-"+(4400+poLines().length);toast(t("poDone").replace("{po}",po));}
+
+function stepper(id,big){const p=products.find(x=>x.id===id);
+  return el("div",{class:"stepper",onclick:(e)=>e.stopPropagation()},[
+    el("button",{onclick:()=>setQty(id,qty[id]-1),disabled:qty[id]<=0?"true":null},[icon("minus")]),
+    el("span",{class:"q",style:big?"min-width:54px;font-size:18px":null,text:fmt0(qty[id])}),
+    el("button",{onclick:()=>setQty(id,qty[id]+1)},[icon("plus")])
+  ]);}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.getElementById("enBtn").classList.toggle("on",lang==="en");
+  document.getElementById("arBtn").classList.toggle("on",lang==="ar");
+  const bm=document.getElementById("bmark");clear(bm);const bi=icon("bag");bi.style.color="#fff";bm.appendChild(bi);
+  document.getElementById("subT").textContent=t("sub");
+  document.getElementById("demoTag").textContent=t("demo");
+  document.getElementById("homeLink").textContent=t("home");
+  document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=t(n.dataset.i18n));
+
+  const nowN=products.filter(p=>status(p)==="now").length;
+  const soonN=products.filter(p=>status(p)==="soon").length;
+  const dead=products.reduce((s,p)=>s+deadCash(p),0);
+  const deadN=products.filter(p=>status(p)==="over").length;
+
+  const kbox=document.getElementById("kpis");clear(kbox);
+  const kpi=(ic,icc,cls,label,val,sub)=>el("div",{class:"kpi "+cls},[el("div",{class:"row1"},[el("div",{class:"ic "+icc},icon(ic)),el("div",{class:"label",text:label})]),el("div",{class:"val",text:val}),el("div",{class:"sub",text:sub})]);
+  kbox.appendChild(kpi("alert","red","bad",t("kNow"),fmt0(nowN),t("kNowSub")));
+  kbox.appendChild(kpi("trend","amber","amber",t("kSoon"),fmt0(soonN),t("kSoonSub")));
+  kbox.appendChild(kpi("coins","indigo","",t("kDead"),fmt(dead),t("kDeadSub").replace("{n}",fmt0(deadN))));
+  kbox.appendChild(kpi("box","green","",t("kPO"),fmt(poValue()),t("kPOSub").replace("{n}",fmt0(poLines().length))));
+
+  const sb=document.getElementById("season");clear(sb);sb.appendChild(icon("sun"));sb.appendChild(el("span",{text:t("season")}));
+
+  document.getElementById("prodCount").textContent=fmt0(products.length);
+  const tb=document.querySelector("#tbl tbody");clear(tb);
+  const order={now:0,soon:1,ok:2,over:3};
+  products.slice().sort((a,b)=>order[status(a)]-order[status(b)]).forEach(p=>{
+    const st=status(p);
+    tb.appendChild(el("tr",{onclick:()=>openDetail(p.id)},[
+      el("td",{},[el("div",{class:"who2"},[el("div",{class:"av"},tyre()),el("div",{},[el("div",{class:"nm",text:p.size}),el("div",{class:"br",text:pname(p)})])])]),
+      el("td",{"data-label":t("stock"),class:"num r",text:fmt0(p.stock)}),
+      el("td",{"data-label":t("velocity")},[el("div",{style:"display:flex;align-items:center;gap:10px"},[spark(p.hist,st==="now"?"#e0413f":st==="over"?"#6366f1":"#15a34a",90,30),el("span",{style:"color:var(--muted);font-size:12px",text:fmt1(avg(p))+" "+t("unitsWk")})])]),
+      el("td",{"data-label":t("cover"),class:"num r",text:fmt1(cover(p))+" "+t("wk")}),
+      el("td",{"data-label":t("status")},[el("span",{class:stChip[st],text:t(st)})]),
+      el("td",{"data-label":t("orderQty"),class:"r"},[el("div",{style:"display:flex;justify-content:flex-end"},[stepper(p.id)])])
+    ]));
+  });
+
+  const pobar=document.getElementById("pobar");clear(pobar);
+  const lines=poLines().length;
+  pobar.appendChild(el("div",{class:"info"},lines?[el("b",{text:t("poInfo").replace("{n}",fmt0(lines)).replace("{amt}",fmt(poValue()))})]:[t("poEmpty")]));
+  pobar.appendChild(el("button",{class:"btn primary",disabled:lines?null:"true",onclick:createPO},[icon("file"),el("span",{text:t("createPO")})]));
+
+  const f=document.getElementById("foot");clear(f);
+  f.appendChild(document.createTextNode("Demo · sample sales history. Forecast = avg weekly sales × summer uplift vs "+LEAD+"-week import lead + "+SAFETY+"-week safety. The live version reads real history from Odoo."));
+}
+
+function openDetail(id){
+  selId=id;const p=products.find(x=>x.id===id);const st=status(p);
+  const dr=document.getElementById("drawer");clear(dr);
+  dr.appendChild(el("div",{class:"dh"},[
+    el("div",{class:"av",style:"width:46px;height:46px;border-radius:13px"},(()=>{const s=tyre();s.setAttribute("width","26");s.setAttribute("height","26");return s;})()),
+    el("div",{},[el("h3",{text:p.size}),el("div",{class:"m"},[pname(p)+" · ",el("span",{class:stChip[st],text:t(st)})])]),
+    el("button",{class:"x",text:"✕",onclick:closeDrawer})
+  ]));
+  dr.appendChild(el("div",{class:"dsec"},[el("div",{class:"lbl",text:t("history")}),
+    el("div",{style:"display:flex;align-items:center;gap:14px"},[spark(p.hist,"#4f46e5",220,52),el("div",{},[el("div",{style:"font-size:22px;font-weight:800",text:fmt1(avg(p))}),el("div",{style:"font-size:11px;color:var(--muted)",text:t("unitsWk")})])])
+  ]));
+  const row=(k,v,hi)=>el("div",{class:"brow"+(hi?" hi":"")},[el("span",{class:"k",text:k}),el("b",{text:v})]);
+  dr.appendChild(el("div",{class:"dsec"},[el("div",{class:"lbl",text:t("forecast")}),
+    row(t("avgWk"),fmt1(avg(p))+" "+t("unitsWk")),
+    row(t("uplift"),"+15% ("+t("adjDemand")+" "+fmt1(demand(p))+")"),
+    row(t("lead"),LEAD+" "+t("weeks")),
+    row(t("safety"),SAFETY+" "+t("weeks")),
+    row(t("rop"),fmt0(reorderPt(p))+" "+t("units")),
+    row(t("curStock"),fmt0(p.stock)+" "+t("units")),
+    row(t("weeksCover"),fmt1(cover(p))+" "+t("weeks"), st==="now"),
+    row(t("stockout"),fdate(stockoutDate(p)), st==="now"),
+    row(t("orderBy"),fdate(orderByDate(p)), st==="now"||st==="soon")
+  ]));
+  dr.appendChild(el("div",{class:"dsec"},[
+    el("div",{class:"recbox"},[el("div",{class:"rt",text:t("recommend")}),
+      el("div",{class:"rv"},[stepper(p.id,true),el("div",{style:"text-align:end"},[el("div",{style:"font-weight:800",text:fmt(qty[p.id]*p.price)}),el("div",{style:"font-size:11px;color:var(--muted)",text:t("editable")})])])
+    ])
+  ]));
+  dr.classList.add("show");document.getElementById("scrim").classList.add("show");
+}
+function closeDrawer(){selId=null;document.getElementById("drawer").classList.remove("show");document.getElementById("scrim").classList.remove("show");}
+render();
+</script>
+</body>
+</html>
