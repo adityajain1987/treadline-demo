@@ -108,15 +108,15 @@
   .donut-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
   .donut-c .p{font-size:21px;font-weight:800;letter-spacing:-.02em}
   .donut-c .l{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-  .expo .meta{flex:1;display:flex;flex-direction:column;gap:10px}
-  .expo .mrow{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .expo .meta{flex:1;display:flex;flex-direction:row;gap:24px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .expo .mrow{display:flex;flex-direction:column;align-items:flex-start;gap:5px;font-size:13px}
   .expo .mrow .k{color:var(--muted);display:flex;align-items:center;gap:7px}
   .expo .mrow .k i{width:9px;height:9px;border-radius:3px;display:inline-block}
-  .expo .mrow b{font-weight:800}
+  .expo .mrow b{font-weight:800;font-size:18px;letter-spacing:-.02em}
 
   /* ---- alerts ---- */
-  .alert{display:flex;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line-2);align-items:center}
-  .alert:last-child{border-bottom:0}
+  #alerts{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px;padding:16px}
+  .alert{display:flex;gap:12px;padding:12px 13px;border:1px solid var(--line);border-radius:12px;align-items:center;background:#fff}
   .alert .ab{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
   .alert .ab svg{width:15px;height:15px}
   .alert .t{font-weight:700;font-size:13.5px} .alert .d{color:var(--muted);font-size:12px;margin-top:1px}
@@ -257,26 +257,23 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
     <div class="content">
       <div class="kpis" id="kpis"></div>
 
-      <div class="cols">
-        <div class="card" id="dealersCard">
-          <div class="ch"><h2 data-i18n="dealers"></h2><span class="count" id="dealerCount"></span></div>
-          <div style="overflow-x:auto">
-            <table id="dealerTable"><thead><tr>
-              <th data-i18n="dealer"></th><th data-i18n="balance"></th>
-              <th data-i18n="usage"></th><th data-i18n="status"></th>
-            </tr></thead><tbody></tbody></table>
-          </div>
-        </div>
+      <div class="card" id="exposureCard" style="margin-bottom:16px">
+        <div class="ch"><h2 data-i18n="exposure"></h2></div>
+        <div class="expo" id="expo"></div>
+      </div>
 
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="card" id="exposureCard">
-            <div class="ch"><h2 data-i18n="exposure"></h2></div>
-            <div class="expo" id="expo"></div>
-          </div>
-          <div class="card" id="alertsCard">
-            <div class="ch"><h2 data-i18n="alerts"></h2><span class="count" id="alertCount"></span></div>
-            <div id="alerts"></div>
-          </div>
+      <div class="card" id="alertsCard" style="margin-bottom:16px">
+        <div class="ch"><h2 data-i18n="alerts"></h2><span class="count" id="alertCount"></span></div>
+        <div id="alerts"></div>
+      </div>
+
+      <div class="card" id="dealersCard">
+        <div class="ch"><h2 data-i18n="dealers"></h2><span class="count" id="dealerCount"></span></div>
+        <div style="overflow-x:auto">
+          <table id="dealerTable"><thead><tr>
+            <th data-i18n="dealer"></th><th data-i18n="balance"></th>
+            <th data-i18n="usage"></th><th data-i18n="status"></th>
+          </tr></thead><tbody></tbody></table>
         </div>
       </div>
 
@@ -530,7 +527,7 @@ function render(){
   const meta=el("div",{class:"meta"},[
     el("div",{class:"mrow"},[el("span",{class:"k"},[el("i",{style:"background:#4f46e5"}),document.createTextNode(t("used"))]),el("b",{text:fmt(totalRec)})]),
     el("div",{class:"mrow"},[el("span",{class:"k"},[el("i",{style:"background:#eaebf0"}),document.createTextNode(t("available"))]),el("b",{text:fmt(Math.max(totLim-totalRec,0))})]),
-    el("div",{class:"mrow",style:"border-top:1px solid var(--line-2);padding-top:10px"},[el("span",{class:"k",text:t("creditLimit")}),el("b",{text:fmt(totLim)})])
+    el("div",{class:"mrow"},[el("span",{class:"k",text:t("creditLimit")}),el("b",{text:fmt(totLim)})])
   ]);
   expo.appendChild(donut); expo.appendChild(meta);
 
