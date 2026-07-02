@@ -4,6 +4,26 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Treadline — Re-order Planner (Demo)</title>
+<meta name="description" content="Explainable demand forecast and purchase-order suggestions with import lead time and summer uplift." />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#4f46e5" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Treadline" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Treadline" />
+<meta property="og:title" content="Treadline — Re-order planner" />
+<meta property="og:description" content="Explainable demand forecast and purchase-order suggestions with import lead time and summer uplift." />
+<meta property="og:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://adityajain1987.github.io/treadline-demo/treadline-reorder-demo.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Treadline — Re-order planner" />
+<meta name="twitter:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -110,6 +130,12 @@
   /* ---- demo nav menu ---- */
   .menubtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;white-space:nowrap}
   .menubtn:hover{background:var(--bg)}
+  /* ---- guided hint ---- */
+  .hintbar{display:flex;align-items:flex-start;gap:10px;background:#eef0fe;border:1px solid #dcdcfb;color:#3730a3;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.5}
+  .hintbar .hi{flex:none;font-size:15px;line-height:1.45}
+  .hintbar .htx{flex:1}
+  .hintbar .hx{flex:none;border:0;background:transparent;color:#6366f1;cursor:pointer;font-size:15px;line-height:1;padding:0 2px;font-family:inherit;margin-inline-start:4px}
+  .hintbar.hidden{display:none}
   .navsheet{position:fixed;inset:0;background:rgba(11,18,32,.5);opacity:0;pointer-events:none;transition:.2s;z-index:200}
   .navsheet.show{opacity:1;pointer-events:auto}
   .navpanel{position:fixed;top:0;inset-inline-end:0;height:100%;width:332px;max-width:88vw;background:#fff;transform:translateX(110%);transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:-18px 0 50px -16px rgba(16,18,24,.4);overflow-y:auto;z-index:201;display:flex;flex-direction:column}
@@ -176,6 +202,7 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
 </div>
 
 <div class="content">
+  <div class="hintbar" id="hintbar" style="margin-bottom:16px"><span class="hi">💡</span><span class="htx" id="hintText"></span><button class="hx" type="button" aria-label="Dismiss" onclick="this.closest('.hintbar').classList.add('hidden');try{localStorage.setItem('tl_hint_'+(location.pathname.split('/').pop()||'x'),'1')}catch(e){}">✕</button></div>
   <div class="kpis" id="kpis"></div>
   <div class="season" id="season"></div>
   <div class="card">
@@ -269,7 +296,7 @@ const fdate=(d)=>d.toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{day:"2-digit"
 const stChip={now:"chip c-now",soon:"chip c-soon",ok:"chip c-ok",over:"chip c-over"};
 
 const TXT={
- en:{sub:"Re-order Planner", demo:"Demo · sample data", home:"☰ Menu",
+ en:{sub:"Re-order Planner", demo:"Demo · sample data", home:"☰ Menu", hint:"Try it — tap any tyre to see its 24-month demand chart and exactly how the re-order quantity is built (lead time + safety stock + summer uplift).",
   planner:"Replenishment plan", product:"Tyre", stock:"In stock", velocity:"Sales / week (8 wks)", cover:"Cover", status:"Status", orderQty:"Order qty",
   kNow:"Order now", kNowSub:"won't last the import lead time", kSoon:"Order soon", kSoonSub:"below reorder point",
   kDead:"Cash in dead stock", kDeadSub:"overstocked lines", kPO:"Suggested PO", kPOSub:"{n} lines to order",
@@ -284,7 +311,7 @@ const TXT={
   step3:"A new shipment takes {lead} weeks to arrive, plus {safety} weeks of safety stock — so we must cover {cover} weeks of demand.",
   step4:"That sets the reorder point at {rop} units. Current stock is {stock}.",
   step5:"To rebuild a healthy buffer, the suggested order is {rec} units (adjust above)."},
- ar:{sub:"مخطط إعادة الطلب", demo:"عرض تجريبي · بيانات", home:"☰ القائمة",
+ ar:{sub:"مخطط إعادة الطلب", demo:"عرض تجريبي · بيانات", home:"☰ القائمة", hint:"جرّبها — اضغط أي إطار لرؤية مخطط الطلب على ٢٤ شهرًا وكيفية حساب كمية إعادة الطلب (مدة التوريد + مخزون الأمان + زيادة الصيف).",
   planner:"خطة التزويد", product:"الإطار", stock:"المخزون", velocity:"المبيعات / أسبوع (٨ أسابيع)", cover:"التغطية", status:"الحالة", orderQty:"كمية الطلب",
   kNow:"اطلب الآن", kNowSub:"لن يكفي حتى وصول الشحنة", kSoon:"اطلب قريباً", kSoonSub:"تحت نقطة إعادة الطلب",
   kDead:"نقد في مخزون راكد", kDeadSub:"أصناف فائضة", kPO:"أمر شراء مقترح", kPOSub:"{n} أصناف للطلب",
@@ -323,6 +350,7 @@ function render(){
   document.getElementById("subT").textContent=t("sub");
   document.getElementById("demoTag").textContent=t("demo");
   document.getElementById("homeLink").textContent=t("home");
+  var _ht=document.getElementById("hintText"); if(_ht){_ht.textContent=t("hint"); try{if(localStorage.getItem("tl_hint_"+(location.pathname.split("/").pop()||"x"))==="1")document.getElementById("hintbar").classList.add("hidden");}catch(e){}}
   document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=t(n.dataset.i18n));
 
   const nowN=products.filter(p=>status(p)==="now").length;

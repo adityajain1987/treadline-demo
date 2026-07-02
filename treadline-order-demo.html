@@ -4,6 +4,26 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Treadline — Dealer Ordering App (Demo)</title>
+<meta name="description" content="Dealers browse tyres, see live stock and their price, and order in seconds — with credit-aware checkout." />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#4f46e5" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Treadline" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Treadline" />
+<meta property="og:title" content="Treadline — Dealer ordering app" />
+<meta property="og:description" content="Dealers browse tyres, see live stock and their price, and order in seconds — with credit-aware checkout." />
+<meta property="og:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://adityajain1987.github.io/treadline-demo/treadline-order-demo.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Treadline — Dealer ordering app" />
+<meta name="twitter:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -126,6 +146,12 @@
   /* ---- demo nav menu ---- */
   .menubtn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--txt);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 13px;cursor:pointer;font-family:inherit;white-space:nowrap}
   .menubtn:hover{background:var(--bg)}
+  /* ---- guided hint ---- */
+  .hintbar{display:flex;align-items:flex-start;gap:10px;background:#eef0fe;border:1px solid #dcdcfb;color:#3730a3;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.5}
+  .hintbar .hi{flex:none;font-size:15px;line-height:1.45}
+  .hintbar .htx{flex:1}
+  .hintbar .hx{flex:none;border:0;background:transparent;color:#6366f1;cursor:pointer;font-size:15px;line-height:1;padding:0 2px;font-family:inherit;margin-inline-start:4px}
+  .hintbar.hidden{display:none}
   .navsheet{position:fixed;inset:0;background:rgba(11,18,32,.5);opacity:0;pointer-events:none;transition:.2s;z-index:200}
   .navsheet.show{opacity:1;pointer-events:auto}
   .navpanel{position:fixed;top:0;inset-inline-end:0;height:100%;width:332px;max-width:88vw;background:#fff;transform:translateX(110%);transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:-18px 0 50px -16px rgba(16,18,24,.4);overflow-y:auto;z-index:201;display:flex;flex-direction:column}
@@ -190,6 +216,7 @@ c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appen
     <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
   </div>
 
+  <div class="hintbar" id="hintbar" style="max-width:420px;width:calc(100% - 24px);margin:0 auto 12px;align-self:center"><span class="hi">💡</span><span class="htx" id="hintText"></span><button class="hx" type="button" aria-label="Dismiss" onclick="this.closest('.hintbar').classList.add('hidden');try{localStorage.setItem('tl_hint_'+(location.pathname.split('/').pop()||'x'),'1')}catch(e){}">✕</button></div>
   <div class="phone">
     <div class="appbar" id="appbar"></div>
     <div class="screen"><div class="pad" id="screen"></div></div>
@@ -250,7 +277,7 @@ const orders=[
 ];
 
 const TXT={
- en:{demo:"Demo · sample data", viewAs:"Viewing as", admin:"☰ Menu",
+ en:{demo:"Demo · sample data", viewAs:"Viewing as", admin:"☰ Menu", hint:"Try it — switch 'Viewing as' (top bar) to Barka Motors (over limit), add tyres to the cart, and Treadline blocks the checkout automatically.",
   sub:"Order from Gulf Tyre Co.", creditAvail:"Credit available", onHold:"On hold", good:"Good standing",
   shop:"Shop", cart:"Cart", ordersT:"Orders", search:"Search size, brand…",
   all:"All", car:"Passenger", suv:"SUV / 4x4", perf:"Performance", truck:"Truck",
@@ -265,7 +292,7 @@ const TXT={
   noOrders:"No orders yet", noOrdersS:"Your placed orders will appear here.",
   reorder:"Reorder", st_deliv:"Delivered", st_disp:"Dispatched", st_conf:"Confirmed",
   note:"Demo with sample data — not real stock or prices. Credit status mirrors the distributor's Treadline dashboard."},
- ar:{demo:"عرض تجريبي · بيانات", viewAs:"العرض بصفة", admin:"☰ القائمة",
+ ar:{demo:"عرض تجريبي · بيانات", viewAs:"العرض بصفة", admin:"☰ القائمة", hint:"جرّبها — بدّل ‘العرض بصفة’ في الأعلى إلى Barka Motors (تجاوز الحد)، أضِف إطارات إلى السلة، وسيمنع Treadline إتمام الطلب تلقائيًا.",
   sub:"اطلب من شركة الخليج للإطارات", creditAvail:"الائتمان المتاح", onHold:"موقوف", good:"وضع جيد",
   shop:"المتجر", cart:"السلة", ordersT:"الطلبات", search:"ابحث عن مقاس أو علامة…",
   all:"الكل", car:"سيارات", suv:"دفع رباعي", perf:"رياضية", truck:"شاحنات",
@@ -311,6 +338,7 @@ function render(){
   document.getElementById("demoTag").textContent=t("demo");
   document.getElementById("viewAsLbl").textContent=t("viewAs");
   document.getElementById("adminLink").textContent=t("admin");
+  var _ht=document.getElementById("hintText"); if(_ht){_ht.textContent=t("hint"); try{if(localStorage.getItem("tl_hint_"+(location.pathname.split("/").pop()||"x"))==="1")document.getElementById("hintbar").classList.add("hidden");}catch(e){}}
   document.getElementById("note").textContent=t("note");
   const ds=document.getElementById("dealerSel");if(ds.childElementCount!==dealers.length){clear(ds);dealers.forEach(d=>ds.appendChild(el("option",{value:String(d.id)})));}
   Array.from(ds.children).forEach((o,i)=>o.textContent=dealers[i][lang]);ds.value=String(dealerId);ds.onchange=(e)=>switchDealer(e.target.value);
