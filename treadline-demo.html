@@ -511,7 +511,7 @@ const TXT={
   footA:"عرض تجريبي ببيانات افتراضية فقط. النسخة الحية تتصل بنظام Odoo.",
   footB:"Treadline · مصمم لموزعي الإطارات وقطع الغيار في عُمان."}
 };
-let lang="en", filter="all", curDealer=null;
+let lang="en", filter="all", curDealer=null, activeNav="kpis";
 const t=(k)=>TXT[lang][k]||k;
 const fmt=(n)=>"OMR "+n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:3,maximumFractionDigits:3});
 const fmt0=(n)=>n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{maximumFractionDigits:0});
@@ -527,6 +527,7 @@ function dealerStatus(d){
 }
 const stChip={ok:"chip c-ok",near:"chip c-warn",over:"chip c-bad",overdue:"chip c-bad",override:"chip c-info"};
 const chqChip={pending:"chip c-info",cleared:"chip c-ok",bounced:"chip c-bad"};
+function setActiveNav(target){activeNav=target;document.querySelectorAll("#nav a[data-target]").forEach(a=>a.classList.toggle("on",a.dataset.target===target));}
 
 function render(){
   document.documentElement.lang=lang;
@@ -549,9 +550,9 @@ function render(){
 
   // nav
   const nav=document.getElementById("nav"); clear(nav);
-  [["dashboard","nDash","content",true],["dealers","nDealers","dealersCard"],["cheque","nCheques","chequesCard"],["alert","nAlerts","alertsCard"]]
-    .forEach(([ic,key,target,on])=>{
-      const a=el("a",{class:on?"on":"",onclick:()=>{document.getElementById(target).scrollIntoView({behavior:"smooth",block:"start"});}},[icon(ic),el("span",{text:t(key)})]);
+  [["dashboard","nDash","kpis"],["dealers","nDealers","dealersCard"],["cheque","nCheques","chequesCard"],["alert","nAlerts","alertsCard"]]
+    .forEach(([ic,key,target])=>{
+      const a=el("a",{class:activeNav===target?"on":"","data-target":target,onclick:()=>{setActiveNav(target);document.getElementById(target).scrollIntoView({behavior:"smooth",block:"start"});}},[icon(ic),el("span",{text:t(key)})]);
       nav.appendChild(a);
     });
 
@@ -772,6 +773,15 @@ function openReminder(c){
   ]));
 }
 render();
+(function(){
+  var ids=["kpis","dealersCard","chequesCard","alertsCard"];
+  var els=ids.map(function(id){return document.getElementById(id);}).filter(Boolean);
+  if(!("IntersectionObserver" in window)||!els.length) return;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting) setActiveNav(en.target.id); });
+  },{rootMargin:"-15% 0px -75% 0px",threshold:0});
+  els.forEach(function(el){io.observe(el);});
+})();
 </script>
 <div class="navsheet" id="navsheet" onclick="if(event.target===this)closeNav()"></div>
 <aside class="navpanel" id="navpanel">
@@ -782,10 +792,10 @@ render();
   </div>
   <div class="np-list">
     <a class="np-item" href="index.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span><span class="np-tx"><span class="np-t">Overview</span><span class="np-s">All five views</span></span></a>
-    <a class="np-item" href="treadline-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></span><span class="np-tx"><span class="np-t">Distributor dashboard</span><span class="np-s">Cheque &amp; credit control</span></span></a>
-    <a class="np-item" href="treadline-order-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.6 9H7.5z"/><path d="M6 6 5.2 3H2"/><path d="M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"/></svg></span><span class="np-tx"><span class="np-t">Dealer ordering app</span><span class="np-s">Browse &amp; order tyres</span></span></a>
     <a class="np-item" href="treadline-pricebook-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4.8A2 2 0 0 1 4.8 2.8H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8z"/><path d="M7.5 7.5h.01"/></svg></span><span class="np-tx"><span class="np-t">Price book</span><span class="np-s">Per-dealer price lists</span></span></a>
+    <a class="np-item" href="treadline-order-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.6 9H7.5z"/><path d="M6 6 5.2 3H2"/><path d="M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"/></svg></span><span class="np-tx"><span class="np-t">Dealer ordering app</span><span class="np-s">Browse &amp; order tyres</span></span></a>
     <a class="np-item" href="treadline-intake-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.1L18 9l-4.3 1.9L12 15l-1.7-4.1L6 9z"/></svg></span><span class="np-tx"><span class="np-t">AI order intake</span><span class="np-s">WhatsApp / PDF → Odoo</span></span></a>
+    <a class="np-item" href="treadline-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></span><span class="np-tx"><span class="np-t">Distributor dashboard</span><span class="np-s">Cheque &amp; credit control</span></span></a>
     <a class="np-item" href="treadline-reorder-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3l9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/></svg></span><span class="np-tx"><span class="np-t">Re-order planner</span><span class="np-s">Forecast &amp; purchase orders</span></span></a>
   </div>
   <div class="np-foot">Treadline · demo with sample data</div>
