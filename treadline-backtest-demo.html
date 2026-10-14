@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Treadline — Forecast Backtest (Demo)</title>
+<meta name="description" content="Prove the forecast on real history: hide the last months, let the planner decide, compare against what actually sold." />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#14161A" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Treadline" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Treadline" />
+<meta property="og:title" content="Treadline — Forecast backtest" />
+<meta property="og:description" content="Hide the last months of history, let the planner decide, compare against what actually sold." />
+<meta property="og:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://adityajain1987.github.io/treadline-demo/treadline-backtest-demo.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Treadline — Forecast backtest" />
+<meta name="twitter:image" content="https://adityajain1987.github.io/treadline-demo/og.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b0d12; --ink-2:#1a1f2b; --txt:#141821; --muted:#5f6775; --faint:#98a0ad;
+    --line:#e9ebf0; --line-2:#f2f4f7; --bg:#f6f7fa; --card:#ffffff;
+    --brand:#14161A; --brand-2:#5E636A; --brand-ink:#14161A; --brand-bg:#eef0fe;
+    --ok:#0f9d58; --ok-bg:#e8f6ee; --ok-ink:#0b7a44;
+    --warn:#8A5A0B; --warn-bg:#fdf4e3; --warn-ink:#8a5a12;
+    --bad:#dc3c3a; --bad-bg:#fdecec; --bad-ink:#a92b29;
+    --actual:#0f9d58; --fc:#14161A;
+    --sh-sm:0 1px 2px rgba(13,16,24,.05);
+    --sh:0 1px 2px rgba(13,16,24,.05),0 4px 12px -4px rgba(13,16,24,.07);
+    --sh-md:0 2px 4px rgba(13,16,24,.04),0 12px 28px -10px rgba(13,16,24,.14);
+    --sh-lg:0 20px 54px -18px rgba(13,16,24,.26);
+    --r:16px; --r-sm:11px;
+  }
+  *{box-sizing:border-box}
+  html,body{overflow-x:hidden}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif;-webkit-font-smoothing:antialiased;font-size:14.5px;line-height:1.5;letter-spacing:-.006em}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ---------- top bar ---------- */
+  .top{display:flex;align-items:center;gap:12px;padding:13px 24px;background:var(--ink);color:#fff;position:sticky;top:0;z-index:30}
+  .brand{display:flex;align-items:center;gap:11px;min-width:0}
+  .brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,var(--brand-2),var(--brand-ink));display:grid;place-items:center;flex:none;box-shadow:0 4px 12px -4px rgba(79,70,229,.8)}
+  .brand .nm{font-weight:800;font-size:16.5px;letter-spacing:-.025em;line-height:1.2}
+  .brand .sub{font-size:11.5px;color:#9aa2b4;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.1);color:#cbd2e0;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14);white-space:nowrap}
+  .grow{flex:1}
+  .menubtn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 13px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .menubtn:hover{background:rgba(255,255,255,.17)}
+  .toggle{display:flex;border:1px solid rgba(255,255,255,.16);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.07)}
+  .toggle button{border:0;background:transparent;padding:9px 12px;font-weight:700;cursor:pointer;color:#aab2c2;font-size:12.5px;font-family:inherit}
+  .toggle button.on{background:#fff;color:var(--ink)}
+
+  .content{max-width:1120px;margin:0 auto;padding:22px 24px 60px}
+
+  /* ---------- hint ---------- */
+  .hintbar{display:flex;align-items:flex-start;gap:11px;background:var(--brand-bg);border:1px solid #dcdcfb;color:#3730a3;border-radius:13px;padding:12px 15px;font-size:13.5px;line-height:1.55;margin-bottom:18px}
+  .hintbar .hi{flex:none;font-size:15px}
+  .hintbar .htx{flex:1}
+  .hintbar .hx{flex:none;border:0;background:transparent;color:var(--brand-2);cursor:pointer;font-size:15px;line-height:1;padding:0 2px;font-family:inherit}
+  .hintbar.hidden{display:none}
+
+  /* ---------- hero verdict ---------- */
+  .hero{background:linear-gradient(145deg,#15182099,var(--ink));color:#fff;border-radius:20px;padding:26px 28px;box-shadow:var(--sh-md);position:relative;overflow:hidden;margin-bottom:18px}
+  .hero::after{content:"";position:absolute;inset-inline-end:-80px;top:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.38),transparent 68%);pointer-events:none}
+  .hero .eyebrow{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:#8e96ab}
+  .hero .hrow{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-top:12px}
+  .hero .big{font-size:62px;font-weight:900;letter-spacing:-.045em;line-height:.92}
+  .hero .bigsub{font-size:13.5px;color:#aeb6c7;max-width:430px;line-height:1.6;padding-bottom:7px}
+  .hero .meter{height:9px;border-radius:999px;background:rgba(255,255,255,.14);margin-top:20px;overflow:hidden}
+  .hero .meter i{display:block;height:100%;border-radius:999px;background:#14161A;transition:width .5s cubic-bezier(.4,0,.2,1)}
+  .hero .mlabels{display:flex;justify-content:space-between;font-size:11px;color:#8e96ab;margin-top:8px;font-weight:600}
+
+  /* ---------- controls ---------- */
+  .ctrls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .ctrls .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;box-shadow:var(--sh-sm);gap:2px}
+  .seg button{border:0;background:transparent;padding:9px 15px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap}
+  .seg button.on{background:var(--ink);color:#fff}
+  .seg button:not(.on):hover{background:var(--line-2);color:var(--txt)}
+
+  /* ---------- kpis ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px 18px;box-shadow:var(--sh);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:3px;background:var(--brand)}
+  .kpi.g::before{background:var(--ok)} .kpi.a::before{background:var(--warn)} .kpi.r::before{background:var(--bad)}
+  .kpi .row1{display:flex;align-items:center;gap:9px}
+  .kpi .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--brand-bg);color:var(--brand)}
+  .kpi.g .ic{background:var(--ok-bg);color:var(--ok)} .kpi.a .ic{background:var(--warn-bg);color:var(--warn)} .kpi.r .ic{background:var(--bad-bg);color:var(--bad)}
+  .kpi .ic svg{width:16px;height:16px}
+  .kpi .label{color:var(--muted);font-size:12.5px;font-weight:600;line-height:1.35}
+  .kpi .val{font-size:26px;font-weight:850;margin-top:12px;letter-spacing:-.035em;white-space:nowrap}
+  .kpi.g .val{color:var(--ok-ink)} .kpi.a .val{color:var(--warn-ink)} .kpi.r .val{color:var(--bad-ink)}
+  .kpi .sub{font-size:12px;color:var(--faint);margin-top:4px;font-weight:500;line-height:1.45}
+
+  /* ---------- cards ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:18px}
+  .ch{display:flex;align-items:center;gap:10px;padding:16px 19px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+  .ch h2{font-size:15px;margin:0;font-weight:800;letter-spacing:-.02em}
+  .ch .cs{font-size:12.5px;color:var(--muted);font-weight:500}
+  .ch .count{margin-inline-start:auto;font-size:11px;color:var(--muted);font-weight:800;background:var(--line-2);padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .cbody{padding:19px}
+
+  /* ---------- chart ---------- */
+  .chartwrap{width:100%}
+  .chartwrap svg{display:block;width:100%;height:auto}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--muted);font-weight:600}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .legend i.ln{height:3px;width:16px;border-radius:2px}
+
+  /* ---------- table ---------- */
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:start;padding:13px 19px;font-size:13.5px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+  th{color:var(--faint);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;background:#fcfcfe}
+  th.r,td.r{text-align:end}
+  tbody tr{cursor:pointer;transition:background .12s}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#fafbfd}
+  td.num{font-weight:750}
+  .who{display:flex;align-items:center;gap:12px}
+  .av{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--ink)}
+  .av svg{width:20px;height:20px}
+  .who .nm{font-weight:750;letter-spacing:-.01em} .who .br{font-size:11.5px;color:var(--faint);margin-top:1px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+  .c-good{background:var(--ok-bg);color:var(--ok-ink)}
+  .c-close{background:var(--warn-bg);color:var(--warn-ink)}
+  .c-review{background:var(--bad-bg);color:var(--bad-ink)}
+  .c-thin{background:var(--line-2);color:var(--muted)}
+  .bar{height:7px;border-radius:999px;background:var(--line-2);overflow:hidden;min-width:70px}
+  .bar i{display:block;height:100%;border-radius:999px}
+
+  /* ---------- note ---------- */
+  .note{display:flex;gap:12px;align-items:flex-start;background:#fcfcfe;border:1px solid var(--line);border-inline-start:3px solid var(--brand);border-radius:12px;padding:15px 17px;font-size:13.5px;line-height:1.65;color:var(--ink-2)}
+  .note b{font-weight:800}
+  .note ul{margin:9px 0 0;padding-inline-start:19px;display:flex;flex-direction:column;gap:6px}
+
+  /* ---------- drawer ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(10,13,20,.52);opacity:0;pointer-events:none;transition:.22s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;inset-inline-end:0;height:100%;width:460px;max-width:94vw;background:#fff;z-index:50;transform:translateX(110%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:var(--sh-lg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  [dir=rtl] .drawer{transform:translateX(-110%)}
+  .drawer.show{transform:translateX(0)}
+  .dh{padding:21px 22px 17px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:13px;position:sticky;top:0;background:#fff;z-index:2}
+  .dh .x{margin-inline-start:auto;border:0;background:var(--line-2);border-radius:10px;width:34px;height:34px;cursor:pointer;font-size:15px;color:var(--ink-2);font-family:inherit;flex:none}
+  .dh h3{margin:0 0 5px;font-size:18px;font-weight:850;letter-spacing:-.025em}
+  .dh .m{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dsec{padding:18px 22px;border-bottom:1px solid var(--line-2)}
+  .dsec .lbl{font-size:10.5px;color:var(--faint);font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:13px}
+  .brow{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 0;font-size:13.5px;border-bottom:1px dashed var(--line)}
+  .brow:last-child{border-bottom:0} .brow .k{color:var(--muted)} .brow b{font-weight:750}
+  .mtbl{width:100%;border-collapse:collapse}
+  .mtbl th,.mtbl td{padding:8px 6px;font-size:12.5px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+  .mtbl th{font-size:10px;background:transparent}
+  .mtbl td:first-child{font-weight:700}
+  .err-ok{color:var(--ok-ink);font-weight:750} .err-mid{color:var(--warn-ink);font-weight:750} .err-bad{color:var(--bad-ink);font-weight:750}
+  .howlist{margin:0;padding-inline-start:19px;display:flex;flex-direction:column;gap:9px}
+  .howlist li{font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+  .foot{color:var(--faint);font-size:12px;text-align:center;margin-top:26px;line-height:1.75}
+
+  /* ---------- nav drawer ---------- */
+  .navsheet{position:fixed;inset:0;background:rgba(10,13,20,.52);opacity:0;pointer-events:none;transition:.2s;z-index:200}
+  .navsheet.show{opacity:1;pointer-events:auto}
+  .navpanel{position:fixed;top:0;inset-inline-end:0;height:100%;width:336px;max-width:89vw;background:#fff;transform:translateX(110%);transition:transform .27s cubic-bezier(.4,0,.2,1);box-shadow:-18px 0 50px -16px rgba(13,16,24,.42);overflow-y:auto;z-index:201;display:flex;flex-direction:column}
+  [dir=rtl] .navpanel{transform:translateX(-110%)}
+  .navpanel.show{transform:none}
+  .np-head{display:flex;align-items:center;gap:10px;padding:18px;border-bottom:1px solid var(--line)}
+  .np-mark{width:33px;height:33px;border-radius:10px;background:linear-gradient(140deg,var(--brand-2),var(--brand-ink));display:grid;place-items:center;flex:none}
+  .np-nm{font-weight:800;font-size:17px;letter-spacing:-.025em}
+  .np-x{margin-inline-start:auto;border:0;background:var(--line-2);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:15px;color:var(--ink-2);font-family:inherit}
+  .np-list{padding:12px;display:flex;flex-direction:column;gap:3px}
+  .np-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:11px;text-decoration:none;color:var(--txt)}
+  .np-item:hover{background:var(--bg)}
+  .np-item.active{background:var(--brand-bg)}
+  .np-ic{width:36px;height:36px;border-radius:10px;background:var(--bg);display:grid;place-items:center;flex:none;color:var(--ink-2)}
+  .np-item.active .np-ic{background:#fff;color:var(--brand)}
+  .np-ic svg{width:18px;height:18px}
+  .np-tx{display:flex;flex-direction:column;min-width:0}
+  .np-t{font-weight:750;font-size:14px}
+  .np-item.active .np-t{color:var(--brand-ink)}
+  .np-s{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .np-foot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--faint)}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.hero .big{font-size:52px}}
+  @media(max-width:640px){
+    .top{padding:11px 14px;gap:9px}
+    .top .badge{display:none}
+    .content{padding:16px 14px 52px}
+    .hero{padding:21px 18px;border-radius:17px}
+    .hero .big{font-size:46px}
+    .hero .bigsub{font-size:13px;padding-bottom:0}
+    .hero .hrow{gap:10px}
+    .kpis{gap:11px}
+    .kpi{padding:14px 15px}
+    .kpi .val{font-size:22px;margin-top:9px}
+    .ch{padding:14px 15px}
+    .cbody{padding:15px}
+    .seg{width:100%}
+    .seg button{flex:1;padding:10px 8px;text-align:center}
+    table thead{display:none}
+    table tbody tr{display:block;border:1px solid var(--line);border-radius:13px;margin:11px 14px;padding:3px 0;box-shadow:var(--sh-sm)}
+    table tbody tr td{display:flex;align-items:center;justify-content:space-between;gap:14px;border:0;padding:9px 14px;white-space:normal;text-align:start}
+    table tbody tr td::before{content:attr(data-label);color:var(--faint);font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.05em;flex:none}
+    table tbody tr td:first-child{padding:13px 14px 7px}
+    table tbody tr td:first-child::before{display:none}
+    .drawer{width:100%;max-width:100%}
+    .dsec{padding:16px 16px}
+    .dh{padding:17px 16px 15px}
+  }
+  @media(max-width:420px){.brand .sub{display:none}.hero .big{font-size:40px}}
+</style>
+<link rel="stylesheet" href="treadline-theme.css">
+</head>
+<body>
+<script>
+(function(){try{if(localStorage.getItem("tl_ok")==="1")return;}catch(e){}
+var H="923f691f3e24dfee676c1313c5346ff91bba58e737f2fe0d4b9c5a41af5e43c0",d=document;
+function mk(t,s,x){var n=d.createElement(t);if(s)n.setAttribute("style",s);if(x!=null)n.textContent=x;return n;}
+var ov=mk("div","position:fixed;inset:0;z-index:99999;background:#0b0d12;display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans Arabic',sans-serif;padding:20px");
+var c=mk("div","background:#fff;border-radius:18px;padding:30px 26px;width:340px;max-width:92vw;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);text-align:center");
+var lg=mk("div","width:46px;height:46px;border-radius:13px;background:#14161A;margin:0 auto 16px;display:flex;align-items:center;justify-content:center");(function(){var N2="http://www.w3.org/2000/svg";function s(t,a){var n=d.createElementNS(N2,t);for(var k in a)n.setAttribute(k,a[k]);return n;}var g=s("svg",{viewBox:"0 0 24 24",fill:"none",width:"26",height:"26"});[["circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}],["circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}],["circle",{cx:12,cy:12,r:1,fill:"#fff"}],["path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"}]].forEach(function(e){g.appendChild(s(e[0],e[1]));});lg.appendChild(g);})();
+var h=mk("div","font-weight:800;font-size:20px;letter-spacing:-.02em;color:#141821","Treadline");
+var sub=mk("div","color:#5f6775;font-size:13.5px;margin:6px 0 20px","Enter the password to view the demo");
+var inp=mk("input","width:100%;border:1px solid #e9ebf0;border-radius:11px;padding:12px 14px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box");inp.type="password";inp.placeholder="Password";inp.setAttribute("aria-label","Password");
+var err=mk("div","color:#dc3c3a;font-size:12.5px;height:16px;margin:9px 0 3px;font-weight:600","");
+var btn=mk("button","width:100%;border:0;border-radius:11px;padding:12px;background:#0D6B4F;color:#F8F6F1;font-weight:700;font-size:14.5px;cursor:pointer;font-family:inherit;margin-top:4px","Unlock");btn.type="button";
+function ok(){try{localStorage.setItem("tl_ok","1");}catch(e){}ov.remove();}
+async function go(){try{var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(inp.value));var x=Array.from(new Uint8Array(b)).map(function(z){return z.toString(16).padStart(2,"0");}).join("");if(x===H)ok();else{err.textContent="Wrong password";inp.value="";inp.focus();}}catch(e){err.textContent="Wrong password";}}
+btn.addEventListener("click",go);inp.addEventListener("keydown",function(e){if(e.key==="Enter")go();});
+c.appendChild(lg);c.appendChild(h);c.appendChild(sub);c.appendChild(inp);c.appendChild(err);c.appendChild(btn);ov.appendChild(c);
+(d.body||d.documentElement).appendChild(ov);setTimeout(function(){inp.focus();},60);
+})();
+</script>
+
+<div class="top">
+  <a class="brand" href="index.html" title="Treadline — all demos"><span class="mark" id="bmark"></span><div><div class="nm">Treadline</a><div class="sub" id="subT"></div></div></div>
+  <span class="badge" id="demoTag"></span>
+  <div class="grow"></div>
+  <div class="toggle"><button id="enBtn" class="on" onclick="setLang('en')">EN</button><button id="arBtn" onclick="setLang('ar')">ع</button></div>
+      <button class="menubtn" id="homeLink" type="button" onclick="openNav()"></button>
+</div>
+
+<div class="content">
+  <div class="dateline" id="tlDateline"></div>
+  <div class="hintbar" id="hintbar"><span class="hi">💡</span><span class="htx" id="hintText"></span><button class="hx" type="button" aria-label="Dismiss" onclick="this.closest('.hintbar').classList.add('hidden');try{localStorage.setItem('tl_hint_'+(location.pathname.split('/').pop()||'x'),'1')}catch(e){}">✕</button></div>
+
+  <section class="hero">
+    <div class="eyebrow" id="heroEyebrow"></div>
+    <div class="hrow">
+      <div class="big num" id="heroBig">—</div>
+      <div class="bigsub" id="heroSub"></div>
+    </div>
+    <div class="meter"><i id="heroMeter" style="width:0%"></i></div>
+    <div class="mlabels"><span id="mlA"></span><span id="mlB"></span></div>
+  </section>
+
+  <div class="ctrls">
+    <span class="lbl" id="holdLbl"></span>
+    <div class="seg" id="holdSeg"></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <div class="ch"><div><h2 data-i18n="chartTitle"></h2><div class="cs" id="chartSub"></div></div><span class="count" id="chartCount"></span></div>
+    <div class="cbody">
+      <div class="chartwrap" id="chart"></div>
+      <div class="legend">
+        <span><i style="background:var(--actual)"></i><span data-i18n="legActual"></span></span>
+        <span><i class="ln" style="background:var(--fc)"></i><span data-i18n="legFc"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><div><h2 data-i18n="perProd"></h2><div class="cs" id="prodSub"></div></div><span class="count" id="prodCount"></span></div>
+    <div style="overflow-x:auto">
+      <table id="tbl"><thead><tr>
+        <th data-i18n="product"></th>
+        <th class="r" data-i18n="sold"></th>
+        <th class="r" data-i18n="predicted"></th>
+        <th data-i18n="accuracy"></th>
+        <th data-i18n="verdict"></th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <div class="card"><div class="cbody"><div class="note" id="noteBox"></div></div></div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer"></aside>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,k){const n=document.createElement(t);if(a)for(const x in a){const v=a[x];if(v==null)continue;
+  if(x==="class")n.className=v;else if(x==="text")n.textContent=v;else if(x==="style")n.setAttribute("style",v);
+  else if(x.slice(0,2)==="on"&&typeof v==="function")n.addEventListener(x.slice(2),v);else n.setAttribute(x,v);}
+  if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c==null||c===false)return;n.appendChild(typeof c==="object"?c:document.createTextNode(String(c)));});return n;}
+function sv(t,a,k){const n=document.createElementNS(NS,t);if(a)for(const x in a){if(a[x]!=null)n.setAttribute(x,a[x]);}if(k!=null)(Array.isArray(k)?k:[k]).forEach(c=>{if(c)n.appendChild(c);});return n;}
+function clear(n){while(n.firstChild)n.removeChild(n.firstChild);}
+function icon(name){const P={
+  target:["M12 21a9 9 0 100-18 9 9 0 000 18z","M12 16a4 4 0 100-8 4 4 0 000 8z","M12 13a1 1 0 100-2 1 1 0 000 2z"],
+  alert:["M12 9v4M12 17h.01","M10.3 4.3 2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"],
+  coins:["M8 8a6 3 0 1012 0 6 3 0 10-12 0z","M20 8v5c0 1.7-2.7 3-6 3M8 8v9c0 1.7 2.7 3 6 3","M2 6a6 3 0 1012 0 6 3 0 10-12 0zM2 6v10c0 1.7 2.7 3 6 3"],
+  eye:["M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z","M12 15a3 3 0 100-6 3 3 0 000 6z"],
+  trend:["M3 17l6-6 4 4 7-7","M14 8h6v6"],
+  info:["M12 21a9 9 0 100-18 9 9 0 000 18z","M12 11v5M12 8h.01"]
+};const g=sv("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.9","stroke-linecap":"round","stroke-linejoin":"round"});(P[name]||[]).forEach(d=>g.appendChild(sv("path",{d})));return g;}
+function tyre(c){c=c||"#fff";return sv("svg",{viewBox:"0 0 24 24",fill:"none"},[sv("circle",{cx:12,cy:12,r:9.5,stroke:c,"stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:5,stroke:c,"stroke-width":"1.4",opacity:".7"}),sv("circle",{cx:12,cy:12,r:1.8,fill:c})]);}
+
+/* ===================== model =====================
+   Same products, same parameters as the re-order planner, so the two
+   demos never disagree. Monthly history is DERIVED deterministically
+   (avg weekly sales x Oman seasonal curve x mild trend x a seeded
+   wobble) and labelled as sample data. Every accuracy figure on this
+   page is COMPUTED from that series by the code below — nothing is a
+   typed-in claim.
+================================================== */
+const TODAY=new Date(2026,5,29);
+const LEAD=5, SAFETY=2;                 // weeks (same as planner)
+const LEADM=LEAD/4.33, SAFETYM=SAFETY/4.33;
+const MSEAS=[.85,.85,.9,.95,1.05,1.2,1.3,1.3,1.2,1.0,.9,.85]; // Jan..Dec, Oman summer peak
+const HIST_M=24;                        // months of sample history held
+
+const products=[
+  {id:"p1", brand:"Dunlop", pat:"SP Sport LM705", size:"205/55R16", price:24.500, stock:28, hist:[7,8,9,10,9,11,10,12]},
+  {id:"p2", brand:"Dunlop", pat:"SP Sport LM705", size:"215/60R16", price:27.000, stock:60, hist:[5,4,6,5,5,4,6,5]},
+  {id:"p3", brand:"Dunlop", pat:"Grandtrek AT5", size:"265/70R16", price:39.500, stock:12, hist:[3,4,5,4,4,3,5,4]},
+  {id:"p4", brand:"Dunlop", pat:"Grandtrek PT3", size:"235/65R17", price:42.000, stock:40, hist:[3,2,3,4,3,3,2,4]},
+  {id:"p5", brand:"Dunlop", pat:"Enasave EC300", size:"195/65R15", price:21.000, stock:80, hist:[10,12,11,13,12,11,10,13]},
+  {id:"p6", brand:"Dunlop", pat:"SP Sport Maxx", size:"225/45R17", price:33.500, stock:8,  hist:[2,1,2,3,2,2,1,3]},
+  {id:"p7", brand:"Dunlop", pat:"SP LT5", size:"285/75R16", price:55.000, stock:55, hist:[2,1,2,1,2,1,2,1]}
+];
+const avg=(p)=>p.hist.reduce((a,b)=>a+b,0)/p.hist.length;
+const FASTWK=4;                         // >= 4 units/week = fast mover
+
+function seeded(s){return function(){s=(s+0x6D2B79F5)|0;var t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296;};}
+
+/* sample monthly actuals: deterministic, reproducible, labelled */
+const _ac={};
+function actuals(p){
+  if(_ac[p.id])return _ac[p.id];
+  const base=avg(p)*4.33, rnd=seeded(p.id.charCodeAt(1)*7919+13), out=[];
+  // Relative month-to-month variability falls as volume rises (count data:
+  // spread scales with the square root of the mean). A line selling 50/month
+  // wobbles ~13%; one selling 6/month wobbles ~35%. This is why the long tail
+  // is genuinely hard to forecast and the fast movers are not.
+  const noise=Math.min(.6,1.15/Math.sqrt(Math.max(1,base)));
+  const lumpy=base<12;   // rare sizes sell in bursts with dead months between
+  for(let i=0;i<HIST_M;i++){
+    const d=new Date(TODAY.getFullYear(), TODAY.getMonth()-(HIST_M-1-i), 1);
+    const trend=0.92+(i/(HIST_M-1))*0.20;
+    let v=base*MSEAS[d.getMonth()]*trend*(1+(rnd()*2-1)*noise);
+    // intermittent demand: a slow line has months where almost nothing moves,
+    // then a burst. No averaging method can predict which month is which —
+    // this is exactly why the long tail gets flagged for a human.
+    if(lumpy && rnd()<.3) v*= .08+rnd()*.3;
+    out.push({d:d, m:d.getMonth(), val:Math.max(0,Math.round(v))});
+  }
+  return (_ac[p.id]=out);
+}
+
+/* forecast for a target month, using ONLY months before uptoIdx.
+   de-seasonalise the trailing window, average it, re-apply the target
+   month's seasonal index. This is the hold-out rule that makes it a
+   backtest rather than a curve fit. */
+const FCWIN=12;   // months of trailing history the forecast averages over
+function forecastFor(series, uptoIdx, targetMonth){
+  const start=Math.max(0,uptoIdx-FCWIN);
+  let s=0,n=0;
+  for(let j=start;j<uptoIdx;j++){s+=series[j].val/MSEAS[series[j].m];n++;}
+  if(!n)return series[0]?series[0].val:0;
+  return (s/n)*MSEAS[targetMonth];
+}
+
+function score(p,hold){
+  const all=actuals(p), st=HIST_M-hold, rows=[];
+  let absErr=0, tot=0, fcTot=0;
+  for(let i=st;i<HIST_M;i++){
+    const f=forecastFor(all,i,all[i].m), a=all[i].val;
+    rows.push({d:all[i].d, f:f, a:a, e:Math.abs(f-a)/(a||1)});
+    absErr+=Math.abs(f-a); tot+=a; fcTot+=f;
+  }
+  const wape=tot?absErr/tot:0;
+  return {rows:rows, acc:Math.max(0,(1-wape)*100), sold:tot, pred:fcTot, fast:avg(p)>=FASTWK};
+}
+
+/* monthly stock simulation over the hold-out window.
+   smart = order up to forecast cover (lead + safety)
+   naive = reorder whatever just sold (the eyeball method) */
+function simulate(p,hold,smart){
+  const all=actuals(p), st=HIST_M-hold, LM=Math.max(1,Math.round(LEADM));
+  let onHand=p.stock, pipe={}, outs=0, lost=0, sum=0, n=0;
+  for(let i=st;i<HIST_M;i++){
+    onHand+=(pipe[i]||0);
+    const a=all[i].val;
+    if(a>onHand){outs++;lost+=a-onHand;onHand=0;}else{onHand-=a;}
+    sum+=onHand;n++;
+    let q;
+    if(smart){
+      const tm=(all[i].m+LM)%12;
+      const f=forecastFor(all,i+1,tm);
+      q=Math.max(0,Math.round(f*(1+LEADM+SAFETYM)-onHand-(pipe[i+LM]||0)));
+    }else{q=a;}
+    pipe[i+LM]=(pipe[i+LM]||0)+q;
+  }
+  return {outs:outs, lost:lost, avgStock:n?sum/n:0};
+}
+
+let lang="en", hold=6, selId=null;
+const t=(k)=>TXT[lang][k]||k;
+const fmt=(n)=>"OMR "+n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:3,maximumFractionDigits:3});
+const fmt0=(n)=>Math.round(n).toLocaleString(lang==="ar"?"ar-OM":"en-US");
+const fmt1=(n)=>n.toLocaleString(lang==="ar"?"ar-OM":"en-US",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pname=(p)=>p.brand+" "+p.pat;
+const mlabel=(d)=>d.toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{month:"short"});
+const mylabel=(d)=>d.toLocaleDateString(lang==="ar"?"ar-OM":"en-GB",{month:"short",year:"2-digit"});
+
+const TXT={
+ en:{
+  sub:"Forecast Backtest", demo:"Demo · sample data", home:"☰ Menu",
+  hint:"Try it — switch the hold-out window below, then tap any tyre to see month-by-month predicted vs actually sold and how the score was calculated.",
+  heroEyebrow:"Accuracy on fast-moving lines", 
+  heroSub:"We hid the last {h} months, let the planner decide what to order using only older data, then compared it against what actually sold. This is the score it earned — not a promise.",
+  mlA:"0% — no better than guessing", mlB:"100% — perfect",
+  holdLbl:"Hold-out window", m3:"3 months", m6:"6 months", m12:"12 months",
+  kAcc:"Fast movers", kAccSub:"{n} lines at {w}+ units/week — where the money is",
+  kTail:"Long tail", kTailSub:"{n} slow lines — flagged for a human, not trusted",
+  kOut:"Stock-outs avoided", kOutSub:"{a} with the planner vs {b} the eyeball way",
+  kSaved:"Lost sales avoided", kSavedSub:"demand the eyeball method would have missed, at list price",
+  chartTitle:"Predicted vs actually sold", chartSub:"All lines combined, month by month across the hold-out window",
+  legActual:"Actually sold", legFc:"Predicted",
+  perProd:"Line by line", prodSub:"Tap a row for the month-by-month breakdown",
+  product:"Tyre", sold:"Actually sold", predicted:"Predicted", accuracy:"Accuracy", verdict:"Verdict",
+  vGood:"Good", vClose:"Close", vReview:"Review manually", vThin:"Thin history",
+  noteTitle:"What this screen is — and what it isn't.",
+  noteBody:"A backtest hides recent history from the forecast, lets it decide, then marks its homework against what really happened. It is the honest way to answer “why should we trust your software” — you are not asked to trust it, you watch it score itself on your own numbers.",
+  noteL1:"Fast-moving lines score well because there is a real pattern to learn. That is where most of the cash sits.",
+  noteL2:"Slow, lumpy lines score badly and are supposed to — the system flags them for your buyer instead of pretending.",
+  noteL3:"It cannot predict shocks: a new fleet contract, a competitor opening, a supply disruption. A human stays in control.",
+  noteL4:"On real data the numbers will differ. The method is what carries over, not these figures.",
+  foot:"Demo · sample 24-month sales history, derived from each tyre's weekly velocity x Oman's seasonal curve. Every accuracy figure here is computed in-page from that series — none is typed in. The live version runs the same backtest on real history read from Odoo.",
+  dMonth:"Month", dPred:"Predicted", dActual:"Sold", dErr:"Off by",
+  dBreak:"Month by month", dScore:"How this score was calculated", dStats:"This line",
+  sVel:"Sales rate", sClass:"Classification", sFast:"Fast mover", sSlow:"Slow / long tail",
+  sSold:"Total actually sold", sPred:"Total predicted", sAcc:"Accuracy (100 − WAPE)", sOut:"Stock-outs in window", sOutN:"with planner / eyeball",
+  st1:"For each hidden month we used only the months BEFORE it — never the answer.",
+  st2:"Each past month was de-seasonalised, averaged over a 12-month window, then the target month's Oman seasonal index was re-applied.",
+  st3:"Error for the month = how far the prediction landed from what actually sold.",
+  st4:"Accuracy = 100 − (total error ÷ total sold), so a big miss on a big month counts more than a small miss on a quiet one.",
+  st5:"This line sells {v} units/week, so it is treated as a {cls}.",
+  units:"units", unitsWk:"units/wk"
+ },
+ ar:{
+  sub:"اختبار رجعي للتوقّع", demo:"عرض تجريبي · بيانات", home:"☰ القائمة",
+  hint:"جرّبها — غيّر فترة الحجب أدناه، ثم اضغط أي إطار لرؤية المتوقّع مقابل المبيع شهرًا بشهر وكيف تم حساب النتيجة.",
+  heroEyebrow:"الدقّة على الأصناف سريعة الحركة",
+  heroSub:"حجبنا آخر {h} أشهر، وتركنا المخطط يقرّر ما يطلبه بالاعتماد على البيانات الأقدم فقط، ثم قارنّا ذلك بما بيع فعلاً. هذه النتيجة التي حقّقها — وليست وعدًا.",
+  mlA:"٠٪ — لا أفضل من التخمين", mlB:"١٠٠٪ — مثالي",
+  holdLbl:"فترة الحجب", m3:"٣ أشهر", m6:"٦ أشهر", m12:"١٢ شهرًا",
+  kAcc:"سريعة الحركة", kAccSub:"{n} أصناف بمعدل {w}+ وحدة/أسبوع — حيث يتركّز المال",
+  kTail:"الذيل الطويل", kTailSub:"{n} أصناف بطيئة — تُحال للمراجعة البشرية",
+  kOut:"نفاد تم تجنّبه", kOutSub:"{a} مع المخطط مقابل {b} بالطريقة التقديرية",
+  kSaved:"مبيعات مفقودة تم تفاديها", kSavedSub:"طلب كانت الطريقة التقديرية ستفوّته، بسعر القائمة",
+  chartTitle:"المتوقّع مقابل المبيع فعلاً", chartSub:"جميع الأصناف مجتمعة، شهرًا بشهر خلال فترة الحجب",
+  legActual:"المبيع فعلاً", legFc:"المتوقّع",
+  perProd:"صنفًا بصنف", prodSub:"اضغط أي سطر للتفصيل الشهري",
+  product:"الإطار", sold:"المبيع فعلاً", predicted:"المتوقّع", accuracy:"الدقّة", verdict:"الحكم",
+  vGood:"جيد", vClose:"قريب", vReview:"يحتاج مراجعة", vThin:"سجل ضعيف",
+  noteTitle:"ما هذه الشاشة — وما ليست.",
+  noteBody:"الاختبار الرجعي يحجب السجل الحديث عن التوقّع، ويتركه يقرّر، ثم يصحّح له مقابل ما حدث فعلاً. هذه هي الطريقة الصادقة للإجابة على “لماذا نثق ببرنامجك” — لا نطلب منك الثقة، بل تراه يصحّح نفسه على أرقامك.",
+  noteL1:"الأصناف سريعة الحركة تحقّق نتائج جيدة لوجود نمط حقيقي يمكن تعلّمه، وهي حيث يتركّز المال.",
+  noteL2:"الأصناف البطيئة المتقطّعة تحقّق نتائج ضعيفة — والنظام يحيلها لمسؤول الشراء بدلاً من التظاهر.",
+  noteL3:"لا يمكنه توقّع المفاجآت: عقد أسطول جديد، منافس يفتح، انقطاع توريد. القرار يبقى بشريًا.",
+  noteL4:"على بيانات حقيقية ستختلف الأرقام. المنهج هو ما ينتقل، لا هذه الأرقام.",
+  foot:"عرض تجريبي · سجل مبيعات ٢٤ شهرًا مشتق من سرعة بيع كل إطار × منحنى عُمان الموسمي. كل رقم دقّة هنا محسوب داخل الصفحة من تلك السلسلة — لا شيء مكتوب يدويًا. النسخة الحيّة تُجري الاختبار نفسه على سجل حقيقي من Odoo.",
+  dMonth:"الشهر", dPred:"المتوقّع", dActual:"المبيع", dErr:"الفارق",
+  dBreak:"شهرًا بشهر", dScore:"كيف حُسبت هذه النتيجة", dStats:"هذا الصنف",
+  sVel:"معدل البيع", sClass:"التصنيف", sFast:"سريع الحركة", sSlow:"بطيء / ذيل طويل",
+  sSold:"إجمالي المبيع", sPred:"إجمالي المتوقّع", sAcc:"الدقّة (١٠٠ − WAPE)", sOut:"النفاد في الفترة", sOutN:"مع المخطط / تقديريًا",
+  st1:"لكل شهر محجوب استخدمنا الأشهر التي تسبقه فقط — لا الإجابة نفسها.",
+  st2:"أُزيل التأثير الموسمي من كل شهر سابق، ثم المتوسط على نافذة ١٢ شهرًا، ثم أُعيد تطبيق المعامل الموسمي لشهر الهدف.",
+  st3:"خطأ الشهر = بُعد التوقّع عمّا بيع فعلاً.",
+  st4:"الدقّة = ١٠٠ − (إجمالي الخطأ ÷ إجمالي المبيع)، فالخطأ الكبير في شهر كبير يُحتسب أكثر.",
+  st5:"هذا الصنف يبيع {v} وحدة/أسبوع، لذا يُعامل كـ {cls}.",
+  units:"وحدة", unitsWk:"وحدة/أسبوع"
+ }
+};
+
+function verdictOf(s){
+  if(!s.fast && s.acc<70) return "thin";
+  if(s.acc>=85) return "good";
+  if(s.acc>=70) return "close";
+  return "review";
+}
+const vChip={good:"chip c-good",close:"chip c-close",review:"chip c-review",thin:"chip c-thin"};
+const vTxt={good:"vGood",close:"vClose",review:"vReview",thin:"vThin"};
+const accColor=(a)=>a>=85?"var(--ok)":a>=70?"var(--warn)":"var(--bad)";
+
+function setLang(l){lang=l;render();if(selId)openDetail(selId);}
+function setHold(h){hold=h;selId=null;closeDrawer();render();}
+
+/* ---------- grouped chart: actual bars + forecast line ---------- */
+function buildChart(){
+  const st=HIST_M-hold;
+  const months=[];
+  for(let i=st;i<HIST_M;i++){
+    let a=0,f=0;
+    products.forEach(p=>{const all=actuals(p);a+=all[i].val;f+=forecastFor(all,i,all[i].m);});
+    months.push({d:actuals(products[0])[i].d,a:a,f:f});
+  }
+  const W=740,H=260,PL=46,PR=14,PT=16,PB=34;
+  const iw=W-PL-PR, ih=H-PT-PB;
+  const mx=Math.max.apply(null,months.map(m=>Math.max(m.a,m.f)))*1.12||1;
+  const bw=Math.min(38,(iw/months.length)*0.52);
+  const xc=(i)=>PL+(iw/months.length)*(i+0.5);
+  const y=(v)=>PT+ih-(v/mx)*ih;
+  const kids=[];
+  // gridlines + y labels
+  for(let g=0;g<=4;g++){
+    const v=mx*g/4, yy=y(v);
+    kids.push(sv("line",{x1:PL,y1:yy.toFixed(1),x2:W-PR,y2:yy.toFixed(1),stroke:"#eceef3","stroke-width":"1"}));
+    kids.push(sv("text",{x:PL-9,y:(yy+4).toFixed(1),"text-anchor":"end","font-size":"10.5",fill:"#98a0ad","font-weight":"600"},[document.createTextNode(fmt0(v))]));
+  }
+  // actual bars
+  months.forEach((m,i)=>{
+    const h0=Math.max(2,(m.a/mx)*ih);
+    kids.push(sv("rect",{x:(xc(i)-bw/2).toFixed(1),y:(PT+ih-h0).toFixed(1),width:bw.toFixed(1),height:h0.toFixed(1),rx:"4",fill:"var(--actual)",opacity:".9"},
+      [sv("title",null,[document.createTextNode(mylabel(m.d)+" · "+t("legActual")+" "+fmt0(m.a)+" "+t("units"))])]));
+  });
+  // forecast line + dots
+  const d="M"+months.map((m,i)=>xc(i).toFixed(1)+" "+y(m.f).toFixed(1)).join(" L");
+  kids.push(sv("path",{d:d,fill:"none",stroke:"var(--fc)","stroke-width":"2.6","stroke-linecap":"round","stroke-linejoin":"round"}));
+  months.forEach((m,i)=>{
+    kids.push(sv("circle",{cx:xc(i).toFixed(1),cy:y(m.f).toFixed(1),r:"4.2",fill:"#fff",stroke:"var(--fc)","stroke-width":"2.4"},
+      [sv("title",null,[document.createTextNode(mylabel(m.d)+" · "+t("legFc")+" "+fmt0(m.f)+" "+t("units"))])]));
+  });
+  // x labels (thin out when crowded)
+  const every=months.length>8?2:1;
+  months.forEach((m,i)=>{ if(i%every)return;
+    kids.push(sv("text",{x:xc(i).toFixed(1),y:H-12,"text-anchor":"middle","font-size":"10.5",fill:"#98a0ad","font-weight":"700"},[document.createTextNode(mlabel(m.d))]));
+  });
+  kids.push(sv("line",{x1:PL,y1:PT+ih,x2:W-PR,y2:PT+ih,stroke:"#dfe2e9","stroke-width":"1.2"}));
+  return sv("svg",{viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Predicted versus actually sold"},kids);
+}
+
+function render(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  document.getElementById("enBtn").classList.toggle("on",lang==="en");
+  document.getElementById("arBtn").classList.toggle("on",lang==="ar");
+  const bm=document.getElementById("bmark");clear(bm);
+  bm.appendChild(sv("svg",{viewBox:"0 0 24 24",fill:"none",width:"19",height:"19"},[sv("circle",{cx:12,cy:12,r:9,stroke:"#fff","stroke-width":"2"}),sv("circle",{cx:12,cy:12,r:3.6,stroke:"#fff","stroke-width":"1.6"}),sv("circle",{cx:12,cy:12,r:1,fill:"#fff"}),sv("path",{d:"M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6",stroke:"#fff","stroke-width":"1.6","stroke-linecap":"round"})]));
+  document.getElementById("subT").textContent=t("sub");
+  document.getElementById("demoTag").textContent=t("demo");
+  document.getElementById("homeLink").textContent=t("home");
+  const ht=document.getElementById("hintText");
+  if(ht){ht.textContent=t("hint");try{if(localStorage.getItem("tl_hint_"+(location.pathname.split("/").pop()||"x"))==="1")document.getElementById("hintbar").classList.add("hidden");}catch(e){}}
+  document.querySelectorAll("[data-i18n]").forEach(n=>n.textContent=t(n.dataset.i18n));
+
+  const S={};products.forEach(p=>S[p.id]=score(p,hold));
+  const fast=products.filter(p=>S[p.id].fast), slow=products.filter(p=>!S[p.id].fast);
+  const wape=(set)=>{let e=0,a=0;set.forEach(p=>{e+=S[p.id].rows.reduce((s,r)=>s+Math.abs(r.f-r.a),0);a+=S[p.id].sold;});return a?e/a:0;};
+  const accFast=Math.max(0,(1-wape(fast))*100), accSlow=Math.max(0,(1-wape(slow))*100);
+
+  let outSmart=0,outNaive=0,lostSmart=0,lostNaive=0;
+  products.forEach(p=>{const a=simulate(p,hold,true),b=simulate(p,hold,false);
+    outSmart+=a.outs;outNaive+=b.outs;lostSmart+=a.lost*p.price;lostNaive+=b.lost*p.price;});
+  const salesSaved=Math.max(0,lostNaive-lostSmart);
+
+  // hero
+  document.getElementById("heroEyebrow").textContent=t("heroEyebrow");
+  document.getElementById("heroBig").textContent=fmt0(accFast)+"%";
+  document.getElementById("heroSub").textContent=t("heroSub").replace("{h}",fmt0(hold));
+  document.getElementById("heroMeter").style.width=Math.min(100,accFast)+"%";
+  document.getElementById("mlA").textContent=t("mlA");
+  document.getElementById("mlB").textContent=t("mlB");
+
+  // hold-out segmented control
+  const seg=document.getElementById("holdSeg");clear(seg);
+  document.getElementById("holdLbl").textContent=t("holdLbl");
+  [[3,"m3"],[6,"m6"],[12,"m12"]].forEach(([v,k])=>{
+    seg.appendChild(el("button",{class:hold===v?"on":null,type:"button",text:t(k),onclick:()=>setHold(v)}));
+  });
+
+  // kpis
+  const kb=document.getElementById("kpis");clear(kb);
+  const kpi=(cls,ic,label,val,sub)=>el("div",{class:"kpi "+cls},[
+    el("div",{class:"row1"},[el("div",{class:"ic"},icon(ic)),el("div",{class:"label",text:label})]),
+    el("div",{class:"val num",text:val}),el("div",{class:"sub",text:sub})]);
+  kb.appendChild(kpi(accFast>=85?"g":accFast>=70?"a":"r","target",t("kAcc"),fmt0(accFast)+"%",t("kAccSub").replace("{n}",fmt0(fast.length)).replace("{w}",fmt0(FASTWK))));
+  kb.appendChild(kpi("a","eye",t("kTail"),fmt0(accSlow)+"%",t("kTailSub").replace("{n}",fmt0(slow.length))));
+  kb.appendChild(kpi(outNaive-outSmart>0?"g":"","alert",t("kOut"),fmt0(Math.max(0,outNaive-outSmart)),t("kOutSub").replace("{a}",fmt0(outSmart)).replace("{b}",fmt0(outNaive))));
+  kb.appendChild(kpi(salesSaved>0?"g":"","coins",t("kSaved"),fmt(salesSaved),t("kSavedSub")));
+
+  // chart
+  document.getElementById("chartSub").textContent=t("chartSub");
+  document.getElementById("chartCount").textContent=fmt0(hold)+" × "+t("dMonth").toLowerCase();
+  const cw=document.getElementById("chart");clear(cw);cw.appendChild(buildChart());
+
+  // table
+  document.getElementById("prodSub").textContent=t("prodSub");
+  document.getElementById("prodCount").textContent=fmt0(products.length);
+  const tb=document.querySelector("#tbl tbody");clear(tb);
+  const rank={good:0,close:1,review:2,thin:3};
+  products.slice().sort((a,b)=>{const va=verdictOf(S[a.id]),vb=verdictOf(S[b.id]);
+    return rank[va]-rank[vb]||S[b.id].acc-S[a.id].acc;}).forEach(p=>{
+    const s=S[p.id], v=verdictOf(s);
+    tb.appendChild(el("tr",{onclick:()=>openDetail(p.id)},[
+      el("td",{},[el("div",{class:"who"},[el("div",{class:"av"},tyre()),el("div",{},[el("div",{class:"nm",text:p.size}),el("div",{class:"br",text:pname(p)})])])]),
+      el("td",{"data-label":t("sold"),class:"num r",text:fmt0(s.sold)}),
+      el("td",{"data-label":t("predicted"),class:"num r",text:fmt0(s.pred)}),
+      el("td",{"data-label":t("accuracy")},[el("div",{style:"display:flex;align-items:center;gap:10px;justify-content:flex-end"},[
+        el("span",{class:"num",style:"font-weight:800;color:"+accColor(s.acc),text:fmt0(s.acc)+"%"}),
+        el("span",{class:"bar"},[el("i",{style:"width:"+Math.min(100,s.acc)+"%;background:"+accColor(s.acc)})])])]),
+      el("td",{"data-label":t("verdict")},[el("span",{class:vChip[v],text:t(vTxt[v])})])
+    ]));
+  });
+
+  // honest note
+  const nb=document.getElementById("noteBox");clear(nb);
+  nb.appendChild(el("div",{style:"flex:none;color:var(--brand);margin-top:2px"},icon("info")));
+  nb.appendChild(el("div",{},[
+    el("b",{text:t("noteTitle")}),document.createTextNode(" "+t("noteBody")),
+    el("ul",{},[el("li",{text:t("noteL1")}),el("li",{text:t("noteL2")}),el("li",{text:t("noteL3")}),el("li",{text:t("noteL4")})])
+  ]));
+
+  document.getElementById("foot").textContent=t("foot");
+}
+
+function openDetail(id){
+  selId=id;
+  const p=products.find(x=>x.id===id), s=score(p,hold), v=verdictOf(s);
+  const a=simulate(p,hold,true), b=simulate(p,hold,false);
+  const dr=document.getElementById("drawer");clear(dr);
+  dr.appendChild(el("div",{class:"dh"},[
+    el("div",{class:"av",style:"width:48px;height:48px;border-radius:14px"},(()=>{const g=tyre();g.setAttribute("width","27");g.setAttribute("height","27");return g;})()),
+    el("div",{},[el("h3",{text:p.size}),el("div",{class:"m"},[pname(p)+" · ",el("span",{class:vChip[v],text:t(vTxt[v])})])]),
+    el("button",{class:"x",text:"✕",onclick:closeDrawer,"aria-label":"Close"})
+  ]));
+
+  const row=(k,val)=>el("div",{class:"brow"},[el("span",{class:"k",text:k}),el("b",{text:val})]);
+  dr.appendChild(el("div",{class:"dsec"},[el("div",{class:"lbl",text:t("dStats")}),
+    row(t("sVel"),fmt1(avg(p))+" "+t("unitsWk")),
+    row(t("sClass"),s.fast?t("sFast"):t("sSlow")),
+    row(t("sSold"),fmt0(s.sold)+" "+t("units")),
+    row(t("sPred"),fmt0(s.pred)+" "+t("units")),
+    row(t("sAcc"),fmt0(s.acc)+"%"),
+    row(t("sOut")+" ("+t("sOutN")+")",fmt0(a.outs)+" / "+fmt0(b.outs))
+  ]));
+
+  const mt=el("table",{class:"mtbl"});
+  mt.appendChild(el("thead",{},[el("tr",{},[
+    el("th",{text:t("dMonth")}),el("th",{class:"r",text:t("dPred")}),
+    el("th",{class:"r",text:t("dActual")}),el("th",{class:"r",text:t("dErr")})])]));
+  const tb2=el("tbody");
+  s.rows.forEach(r=>{
+    const pct=r.e*100, cl=pct<=15?"err-ok":pct<=30?"err-mid":"err-bad";
+    tb2.appendChild(el("tr",{},[
+      el("td",{text:mylabel(r.d)}),
+      el("td",{class:"r num",text:fmt0(r.f)}),
+      el("td",{class:"r num",text:fmt0(r.a)}),
+      el("td",{class:"r "+cl,text:fmt0(pct)+"%"})]));
+  });
+  mt.appendChild(tb2);
+  dr.appendChild(el("div",{class:"dsec"},[el("div",{class:"lbl",text:t("dBreak")}),mt]));
+
+  dr.appendChild(el("div",{class:"dsec"},[el("div",{class:"lbl",text:t("dScore")}),
+    el("ol",{class:"howlist"},[
+      el("li",{text:t("st1")}),el("li",{text:t("st2")}),el("li",{text:t("st3")}),el("li",{text:t("st4")}),
+      el("li",{text:t("st5").replace("{v}",fmt1(avg(p))).replace("{cls}",s.fast?t("sFast"):t("sSlow"))})
+    ])]));
+
+  dr.classList.add("show");
+  document.getElementById("scrim").classList.add("show");
+}
+function closeDrawer(){selId=null;document.getElementById("drawer").classList.remove("show");document.getElementById("scrim").classList.remove("show");}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeDrawer();closeNav();}});
+render();
+</script>
+
+<div class="navsheet" id="navsheet" onclick="if(event.target===this)closeNav()"></div>
+<aside class="navpanel" id="navpanel">
+  <div class="np-head">
+    <span class="np-mark"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.6" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="12" r="1" fill="#fff"/><path d="M12 3.4V8.2M12 15.8V20.6M3.4 12H8.2M15.8 12H20.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+    <span class="np-nm">Treadline</span>
+    <button class="np-x" type="button" onclick="closeNav()">✕</button>
+  </div>
+  <div class="np-list">
+    <a class="np-item" href="index.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span><span class="np-tx"><span class="np-t">Overview</span><span class="np-s">All six views</span></span></a>
+    <a class="np-item" href="treadline-pricebook-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4.8A2 2 0 0 1 4.8 2.8H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8z"/><path d="M7.5 7.5h.01"/></svg></span><span class="np-tx"><span class="np-t">Price book</span><span class="np-s">Per-dealer price lists</span></span></a>
+    <a class="np-item" href="treadline-order-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.6 9H7.5z"/><path d="M6 6 5.2 3H2"/><path d="M9 20a1 1 0 100-2 1 1 0 000 2zM18 20a1 1 0 100-2 1 1 0 000 2z"/></svg></span><span class="np-tx"><span class="np-t">Dealer ordering app</span><span class="np-s">Browse &amp; order tyres</span></span></a>
+    <a class="np-item" href="treadline-intake-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.1L18 9l-4.3 1.9L12 15l-1.7-4.1L6 9z"/></svg></span><span class="np-tx"><span class="np-t">AI order intake</span><span class="np-s">WhatsApp / PDF → Odoo</span></span></a>
+    <a class="np-item" href="treadline-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></span><span class="np-tx"><span class="np-t">Distributor dashboard</span><span class="np-s">Cheque &amp; credit control</span></span></a>
+    <a class="np-item" href="treadline-reorder-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3l9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/></svg></span><span class="np-tx"><span class="np-t">Re-order planner</span><span class="np-s">Forecast &amp; purchase orders</span></span></a>
+    <a class="np-item" href="treadline-backtest-demo.html"><span class="np-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z"/><path d="M12 16a4 4 0 100-8 4 4 0 000 8z"/><path d="M12 13a1 1 0 100-2 1 1 0 000 2z"/></svg></span><span class="np-tx"><span class="np-t">Forecast backtest</span><span class="np-s">Proof on real history</span></span></a>
+  </div>
+  <div class="np-foot">Treadline · demo with sample data</div>
+</aside>
+<script>
+function openNav(){document.getElementById('navsheet').classList.add('show');document.getElementById('navpanel').classList.add('show');}
+function closeNav(){document.getElementById('navsheet').classList.remove('show');document.getElementById('navpanel').classList.remove('show');}
+(function(){var p=(location.pathname.split('/').pop()||'index.html');Array.prototype.forEach.call(document.querySelectorAll('.navpanel .np-item'),function(a){if(a.getAttribute('href')===p)a.classList.add('active');});})();
+</script>
+
+<script>
+/* Dateline — one of the two signature objects (DESIGN.md).
+   Answers "is this live, from where, as at when" — the first question a
+   finance manager asks. The source line reads SAMPLE DATA, not ODOO,
+   because nothing is wired to an ERP yet; printing "SOURCE: ODOO" on a
+   demo would be a false claim on the face of every screen. In the live
+   product this line carries the real ERP name and sync time. */
+(function(){
+  var el=document.getElementById("tlDateline"); if(!el) return;
+  var DOC={en:"Forecast backtest", ar:"اختبار رجعي للتوقّع"};
+  function paint(){
+    var ar=document.documentElement.lang==="ar";
+    var d=new Date(2026,5,28,14,32);
+    var when=d.toLocaleString(ar?"ar-OM":"en-GB",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
+    while(el.firstChild)el.removeChild(el.firstChild);
+    el.appendChild(document.createTextNode(
+      (ar?DOC.ar:DOC.en)+" \u00b7 "+(ar?"شركة الخليج للإطارات":"Gulf Tyre Co.")+
+      " \u00b7 "+(ar?"حتى":"as at")+" "+when+" GST \u00b7 "));
+    var src=document.createElement("span");
+    src.className="live";
+    src.textContent=ar?"المصدر: بيانات تجريبية — غير متصل":"source: sample data \u2014 not connected";
+    el.appendChild(src);
+  }
+  paint();
+  new MutationObserver(paint).observe(document.documentElement,{attributes:true,attributeFilter:["lang","dir"]});
+})();
+</script>
+</body>
+</html>

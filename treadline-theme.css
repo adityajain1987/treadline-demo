@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Amiri:wght@400;700&display=swap');
+
+/* =================================================================
+   Treadline — "Ledger"
+   SINGLE SOURCE OF TRUTH for the look across all 7 pages.
+   Linked AFTER each page's own <style>, so it overrides by cascade
+   while page-specific components keep their structure.
+   Spec + rationale: DESIGN.md. Change the look here, not in the HTML.
+
+   Thesis: a statement of account printed on unbleached ledger stock.
+   No cards. No shadows. No radius. Colour means money state and
+   nothing else.
+   ================================================================= */
+
+:root{
+  /* paper + ink */
+  --paper:#EFEBE3; --sheet:#F8F6F1; --inkfield:#14161A;
+  --ink:#14161A; --ink-2:#4A4F57; --muted:#5E636A; --faint:#787D84;
+  --rule:#D5CFC3; --rule-2:#B9B2A4;
+
+  /* the one accent: primary action + live-sync only */
+  --accent:#0D6B4F;
+
+  /* status: colour ONLY where money is at risk */
+  --ok:#2E3A33; --warn:#8A5A0B; --bad:#A33528; --alarm:#F0390C;
+
+  /* ---- legacy token names the 7 pages already reference ---- */
+  --txt:#14161A; --line:#D5CFC3; --line-2:#E4DFD5;
+  --bg:#EFEBE3; --card:#F8F6F1;
+  --brand:#0D6B4F; --brand-2:#0D6B4F; --brand-ink:#0D6B4F; --brand-bg:#E4E9E6;
+  --ok-bg:transparent; --ok-ink:#2E3A33;
+  --warn-bg:#F3E8D4; --warn-ink:#8A5A0B;
+  --bad-bg:#F2DFDC; --bad-ink:#A33528;
+  --info:#4A4F57; --info-bg:#E8E4DB;
+  --actual:#14161A; --fc:#5E636A;
+
+  /* shadows are abolished */
+  --sh-sm:none; --sh:none; --sh-md:none; --sh-lg:none;
+  --r:0px; --r-sm:0px;
+}
+
+/* ---------- base: paper, ruled ---------- */
+html,body{overflow-x:hidden}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans","IBM Plex Sans Arabic",system-ui,sans-serif;
+  font-size:15px; line-height:1.5; letter-spacing:0;
+  -webkit-font-smoothing:antialiased;
+  /* ledger ground: a rule every 44px at 4% ink */
+  background-image:repeating-linear-gradient(to bottom,
+    rgba(20,22,26,.04) 0 1px, transparent 1px 44px);
+}
+[dir=rtl] body{letter-spacing:0}
+
+/* ---------- display type ---------- */
+h1,h2,.hero h1,.ch h2{
+  font-family:"Instrument Serif",Georgia,serif;
+  font-weight:400; letter-spacing:-.02em;
+}
+/* Arabic display: Instrument Serif has no Arabic, so Amiri carries it.
+   These selectors must out-specify the header rules below, or the Latin
+   serif silently wins in RTL and the Arabic falls back to a default. */
+[dir=rtl] h1,[dir=rtl] h2,[dir=rtl] .ch h2,
+[dir=rtl] body > .top .nm,[dir=rtl] .main > .top h1,
+[dir=rtl] .side > .brand .nm,[dir=rtl] .stage > .toolbar .brand,
+[dir=rtl] .hero h1{
+  font-family:"Amiri",Georgia,serif !important; letter-spacing:0 !important;
+}
+.ch h2{font-size:19px}
+
+/* micro caps — the only uppercase in the product. Never in Arabic. */
+th,.kl,.lbl,.np-s,.badge{
+  font-family:"IBM Plex Mono",monospace;
+  text-transform:uppercase; letter-spacing:.14em; font-size:10.5px; font-weight:500;
+}
+/* Tracking breaks connected Arabic script, and the uppercase-micro style
+   has no Arabic equivalent. !important because the Latin micro-caps rule
+   above it keeps winning otherwise — this is a correctness rule, not taste. */
+[dir=rtl] th,[dir=rtl] .lbl,[dir=rtl] .badge,[dir=rtl] .kl,[dir=rtl] .np-s,
+[dir=rtl] .menubtn,[dir=rtl] .chip,[dir=rtl] .dateline,[dir=rtl] .stamp{
+  font-family:"IBM Plex Sans Arabic",sans-serif !important;
+  text-transform:none !important; letter-spacing:0 !important;
+  font-weight:700; font-size:11.5px;
+}
+[dir=rtl] *{letter-spacing:0}
+
+/* ---------- money: struck, not typed ---------- */
+.num,.val,.kv,td.num,td.m,.q,.money,.kpi .val,.mtbl td,.brow b{
+  font-family:"IBM Plex Mono",monospace;
+  font-variant-numeric:tabular-nums; letter-spacing:-.01em;
+}
+.kpi .val{
+  font-weight:400;
+  /* mono is wider than the sans it replaced; a 3-decimal OMR figure
+     outgrew its box at the old size. Proper fix is DESIGN.md's rule —
+     unit in the label, baisa at 80% — which needs markup changes per
+     page. Until then size it so nothing is ever cut off. */
+  font-size:17px; letter-spacing:-.02em;
+}
+
+/* ---------- surfaces: no cards, no shadows, no radius ---------- */
+*,*::before,*::after{box-shadow:none !important}
+.card,.kpi,.chip,.btn,.drawer,.toast,.navpanel,.hintbar,
+.seg,.stepper,.av,.ic,.mark,.np-ic,.np-mark,.recbox,.note,.bar,.bar i{
+  border-radius:0 !important;
+}
+.card{background:transparent;border:0;border-top:2px solid var(--ink);box-shadow:none}
+.ch{border-bottom:1px solid var(--rule);padding:14px 0 10px}
+.cbody{padding:16px 0}
+
+/* icon chips are banned: no tinted squares, just a printed mark */
+.ic,.av,.np-ic{
+  background:transparent !important; border:1px solid var(--rule);
+  color:var(--ink) !important;
+}
+.ic svg,.av svg{color:var(--ink)}
+
+/* KPIs become ruled figures, not boxes */
+.kpi{
+  background:transparent; border:0; border-top:1px solid var(--rule);
+  border-right:1px solid var(--rule); padding:14px 18px 16px;
+}
+.kpi::before{display:none !important}
+.kpi:last-child{border-right:0}
+.kpi .label{color:var(--muted)}
+.kpi .sub{color:var(--muted)}
+
+/* ---------- the ink field: headers ---------- */
+body > .top,.main > .top,.stage > .toolbar,.side > .brand{
+  background:var(--inkfield); color:#F3F0EA; border-bottom:0;
+}
+body > .top .nm,.main > .top h1,.side > .brand .nm,.stage > .toolbar .brand{
+  font-family:"Instrument Serif",Georgia,serif; font-weight:400; letter-spacing:0;
+  color:#F3F0EA;
+}
+.side > .brand,.side > .brand *{color:#F3F0EA}
+body > .top .sub,.main > .top .sub,.stage > .toolbar .co{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; color:#9AA0A8;
+}
+/* the brand mark becomes a printed ring, not a gradient chip */
+body > .top .mark,.main > .top .topmark,.side > .brand .mark,
+.stage > .toolbar .mark,.np-mark{
+  background:transparent !important; border:1.5px solid currentColor;
+  border-radius:50% !important; box-shadow:none !important;
+}
+
+/* header controls */
+.menubtn{
+  background:transparent; color:#F3F0EA; border:1px solid rgba(243,240,234,.32);
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; padding:8px 12px; font-weight:500;
+}
+.menubtn:hover{background:rgba(243,240,234,.1)}
+.badge{background:transparent;color:#9AA0A8;border:1px solid rgba(243,240,234,.26)}
+.toggle{border:1px solid rgba(243,240,234,.32);background:transparent}
+.toggle button{background:transparent;color:#9AA0A8;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em}
+.toggle button.on{background:#F3F0EA;color:var(--inkfield)}
+.stage > .toolbar .ctrl{background:transparent;border:1px solid rgba(243,240,234,.32)}
+.stage > .toolbar .ctrl label{color:#9AA0A8}
+.stage > .toolbar .ctrl select{background:transparent;color:#F3F0EA;border:0}
+.stage > .toolbar .ctrl select option{background:var(--inkfield);color:#F3F0EA}
+
+/* ---------- sidebar: paper, ruled ---------- */
+.side{background:var(--paper);border-inline-end:1px solid var(--rule-2)}
+
+/* ---------- tables: a bank statement at arm's length ---------- */
+table{border-collapse:collapse}
+th{
+  color:var(--muted); background:transparent;
+  border-bottom:2px solid var(--ink); padding:9px 12px; text-align:start;
+}
+td{
+  border-bottom:1px solid var(--rule); padding:11px 12px;
+  font-size:13.5px; background:transparent;
+}
+tbody tr:hover{background:transparent;box-shadow:inset 2px 0 0 var(--ink) !important}
+tbody tr:nth-child(even) td{background:transparent}
+
+/* ---------- status: colour only where money is at risk ---------- */
+.chip{
+  background:transparent !important; border:0; padding:3px 0;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.1em; text-transform:uppercase; font-weight:500;
+  border-bottom:2px solid currentColor;
+}
+.chip::before{
+  content:""; width:6px; height:6px; border-radius:0 !important;
+  background:currentColor; flex:none;
+}
+/* healthy carries no colour and no mark at all */
+.chip.c-ok,.chip.c-good,.chip.ok{color:var(--muted);border-bottom-color:transparent}
+.chip.c-ok::before,.chip.c-good::before,.chip.ok::before{display:none}
+.chip.c-soon,.chip.c-close,.chip.wn,.chip.warn{color:var(--warn)}
+.chip.c-now,.chip.c-review,.chip.bd,.chip.bad{color:var(--bad)}
+.chip.c-over,.chip.c-thin{color:var(--muted)}
+
+/* ---------- actions: one accent, one per viewport ---------- */
+.btn{
+  font-family:"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:13px; padding:10px 18px; border:0;
+}
+.btn.primary{background:var(--accent);color:#F8F6F1}
+.btn.primary:disabled{background:var(--rule-2);color:#F8F6F1}
+
+/* ---------- drawers / overlays: a sheet, flat scrim ---------- */
+.drawer,.navpanel{background:var(--sheet);border-inline-start:1px solid var(--rule-2)}
+.scrim,.navsheet{background:rgba(20,22,26,.42) !important;backdrop-filter:none}
+.toast{background:var(--inkfield);color:#F3F0EA}
+
+/* ---------- nav drawer ---------- */
+.np-item{border-radius:0}
+.np-item.active{background:transparent;box-shadow:inset 2px 0 0 var(--ink) !important}
+.np-item.active .np-t{color:var(--ink)}
+.np-ic{background:transparent;border:1px solid var(--rule)}
+.np-item.active .np-ic{background:transparent;border-color:var(--ink);color:var(--ink)}
+.np-t{font-weight:600}
+
+/* ---------- hint: a margin note, not a callout ---------- */
+.hintbar{
+  background:transparent; border:0; border-inline-start:2px solid var(--ink);
+  color:var(--ink-2); padding:10px 0 10px 14px; font-size:13.5px;
+}
+[dir=rtl] .hintbar{padding:10px 14px 10px 0}
+
+/* ---------- the dateline (signature object) ---------- */
+.dateline{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+  padding-bottom:8px; border-bottom:2px solid var(--ink); margin-bottom:22px;
+}
+[dir=rtl] .dateline{letter-spacing:0;text-transform:none;font-family:"IBM Plex Sans Arabic",sans-serif;font-weight:700}
+.dateline .live{color:var(--accent)}
+
+/* ---------- the stamp (signature object) ---------- */
+.stamp{
+  display:inline-block; font-family:"IBM Plex Mono",monospace;
+  font-size:10px; letter-spacing:.12em; text-transform:uppercase; font-weight:600;
+  color:var(--bad); border:2px solid var(--bad); padding:4px 8px;
+  transform:rotate(-1.5deg); line-height:1.25; background:transparent;
+}
+.stamp .rsn{display:block;font-size:9px;letter-spacing:.06em;opacity:.8;font-weight:400}
+@keyframes stampland{from{transform:rotate(-1.5deg) scale(1.04);opacity:.4}to{transform:rotate(-1.5deg) scale(1);opacity:1}}
+.stamp.landed{animation:stampland 90ms ease-out}
+
+/* ---------- motion: 120ms, nothing else ---------- */
+*{transition-duration:120ms !important}
+@media(prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* ---------- mobile ---------- */
+@media(max-width:640px){
+  body{background-image:none}
+  .ch h2{font-size:17px}
+  td{font-size:13px}
+  .kpi{border-right:0}
+}
+
+/* =================================================================
+   Arabic typography, last word.
+   Earlier [dir=rtl] rules were losing letter-spacing to the Latin
+   micro-caps block despite !important. Rather than chase the cascade,
+   this sits last in the file at html-level specificity so nothing of
+   ours can outrank it. Tracking breaks connected Arabic script — this
+   is a correctness rule, not a preference.
+   ================================================================= */
+html[dir="rtl"] body,
+html[dir="rtl"] body *,
+html[dir="rtl"] th,
+html[dir="rtl"] .menubtn,
+html[dir="rtl"] .badge,
+html[dir="rtl"] .chip,
+html[dir="rtl"] .toggle button,
+html[dir="rtl"] .np-s,
+html[dir="rtl"] .lbl,
+html[dir="rtl"] .kl,
+html[dir="rtl"] .dateline,
+html[dir="rtl"] .sub{
+  letter-spacing:0 !important;
+  text-transform:none !important;
+}
+html[dir="rtl"] th,
+html[dir="rtl"] .menubtn,
+html[dir="rtl"] .badge,
+html[dir="rtl"] .lbl,
+html[dir="rtl"] .kl{
+  font-family:"IBM Plex Sans Arabic",sans-serif !important;
+  font-size:11.5px !important;
+  font-weight:700 !important;
+}
+
+/* ---------- brand is now a link home; keep it looking like a mark ---------- */
+a.brand,a.brand:hover,a.brand:visited{text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px}
+.side > a.brand{gap:10px}
+a.brand:hover .nm{text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- dateline sits above the first content rule ---------- */
+.content > .dateline:first-child{margin-top:2px}
